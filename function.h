@@ -8,10 +8,10 @@
 #include "structs.h"
 //#include "lista.h"
 
-void take_arguments(int argc,char *argv[],char **file,char** dir);
-int find_relation_number(char* init_file);
-void create_init_relations(char* directory,char *workload_file,main_array **array);
-void delete_all_array(char** directory,char** file);
+void take_arguments(int argc,char *argv[],char **file, char **dir);
+int find_relation_number(char *init_file);
+int create_init_relations(char *directory, char *workload_file, main_array **array);
+void delete_all_array(main_array **array, int relation_number, char **directory, char **file);
 
 
 #endif
