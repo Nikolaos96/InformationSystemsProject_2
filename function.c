@@ -146,42 +146,76 @@
 
    return relation_number;
  }
- void execute_query(char *query,main_array **array,int relation_number){
-   printf("query= %s\n",query);
-   char* relations;
-   char* relation;
-   relations=strsep(&query,"|");
-   printf("token= %s\n",relations);
-   printf("query= %s\n",query);
-   relation=strsep(&relations," ");
-   while(relation!=NULL){
-     printf("r= %s\n",r);
-     relation=strsep(&relations," ");
-   }
 
+
+
+
+
+
+ void execute_query(char *query,main_array **array,int relation_number){
+     char *relations;
+     char *relation;
+
+     int *rel = malloc(relation_number * sizeof(int));
+     if(rel == NULL){
+         printf("Error malloc rel \n");
+         exit(1);
+     }
+
+
+
+     relations  = strsep(&query,"|");
+     printf("token= %s\n",relations);
+     printf("query= %s\n",query);
+
+
+     int i = 0;
+     while(1){
+         relation = strsep(&relations," ");
+         if(relation == NULL) break;
+         rel[i] = atoi(relation);
+         i++;
+     }
+
+
+     for(i = i ; i < relation_number ; i++) rel[i] = -1;
+     for(i = 0 ; i < relation_number ; i++) printf("%d   ", rel[i]);
+     printf("\n");
+
+
+
+     free(rel);
  }
 
 
+
+
+
  void read_queries(char *query_file,main_array **array,int relation_number){
-   FILE *f=fopen(query_file,"r");
    char* query;
    size_t len = 0;
+
+   FILE *f=fopen(query_file,"r");
    if(f==NULL){
      printf("error in opening query_file\n");
      exit(1);
    }
-   while(getline(&query,&len,f)!= -1){
 
+
+   while(getline(&query,&len,f)!= -1){
      if(!strcmp(query,"F\n")){
        printf("End of batch,press anything to procced to next batch\n");
        getchar();
+       continue;
      }
 
-     //printf("query= %s\n",query);
      execute_query(query,array,relation_number);
    }
+
    fclose(f);
    free(query);
+
+   return;
  }
 
 
