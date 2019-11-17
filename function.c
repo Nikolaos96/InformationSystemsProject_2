@@ -8,9 +8,9 @@
  /*
    take arguments from command line and init variables
  */
- void take_arguments(int argc,char *argv[],char **file,char **dir){
+ void take_arguments(int argc,char *argv[],char **file,char **dir,char **query_file){
     char *arg;
-    if(argc != 5 ){
+    if(argc != 7 ){
         printf("\nError in arguments command line. \n\n");
         exit(1);
     }
@@ -23,6 +23,10 @@
         }else if(!strcmp(arg, "-D")){
             *dir = malloc((strlen(*++argv) + 1) * sizeof(char));
             strcpy(*dir, *argv);
+        }
+        else if(!strcmp(arg, "-Q")){
+            *query_file = malloc((strlen(*++argv) + 1) * sizeof(char));
+            strcpy(*query_file, *argv);
         }
         if(argc > 1) argc--;
      }
@@ -88,8 +92,8 @@
 
        FILE *fp = fopen(file, "rb");
        if(fp == NULL){
-	   printf("Erros in fopen for file  %s \n", file);
-	   exit(1);
+	        printf("Error in fopen for file  %s \n", file);
+	        exit(1);
        }
 
        uint64_t tuples, columns, x;
@@ -104,25 +108,26 @@
 
        (*array)[i].index = malloc((*array)[i].num_columns * sizeof(int));
        if((*array)[i].index == NULL){
-	   printf("Error in malloc array[%d]->index \n", i);
-	   exit(1);
+	        printf("Error in malloc array[%d]->index \n", i);
+	        exit(1);
        }
 
        (*array)[i].relation_array = malloc( ((*array)[i].num_tuples * (*array)[i].num_columns) * sizeof(uint64_t));
        if((*array)[i].relation_array == NULL){
-	   printf("Error n malloc array[%d]->relation_array \n", i);
-	   exit(1);
+	        printf("Error in malloc array[%d]->relation_array \n", i);
+	        exit(1);
        }
        //////////////////////////////////////////////////
 
 
        for(int j = 0 ; j < ((*array)[i].num_tuples * (*array)[i].num_columns) ; j++){
-	   fread(&x, sizeof(x), 1, fp);
-	   (*array)[i].relation_array[j] = x;
+	        fread(&x, sizeof(x), 1, fp);
+	        (*array)[i].relation_array[j] = x;
        }
 
        (*array)[i].index[0] = 0;
-       for(int j = 1 ; j < (*array)[i].num_columns ; j++) (*array)[i].index[j] = j * (*array)[i].num_tuples;
+       for(int j = 1 ; j < (*array)[i].num_columns ; j++)
+          (*array)[i].index[j] = j * (*array)[i].num_tuples;
        ////////////////////////////////////////////////////
 
        fclose(fp);
@@ -130,15 +135,53 @@
    fclose(f);
 
 
-/*
-   printf("%lu   %lu \n", (*array)[1].num_tuples, (*array)[1].num_columns);
+   /*for(int j=0;j<13;j++){
+    printf("%lu   %lu \n", (*array)[j].num_tuples, (*array)[j].num_columns);
+    printf("\n____________________________________________ \n\n");
+  }
+  for(int j = 0 ; j < (*array)[1].num_columns ; j++) printf("%d \n", (*array)[1].index[j]);
    printf("\n____________________________________________ \n\n");
-   for(int j = 0 ; j < (*array)[1].num_columns ; j++) printf("%d \n", (*array)[1].index[j]);
-   printf("\n____________________________________________ \n\n");
-   for(int j = 0 ; j < (*array)[1].num_tuples ; j++) printf("%lu \n", (*array)[1].relation_array[j]);
-*/
+   for(int j = 0 ; j < (*array)[1].num_tuples ; j++) printf("%lu \n", (*array)[1].relation_array[j]); */
+
 
    return relation_number;
+ }
+ void execute_query(char *query,main_array **array,int relation_number){
+   printf("query= %s\n",query);
+   char* relations;
+   char* relation;
+   relations=strsep(&query,"|");
+   printf("token= %s\n",relations);
+   printf("query= %s\n",query);
+   relation=strsep(&relations," ");
+   while(relation!=NULL){
+     printf("r= %s\n",r);
+     relation=strsep(&relations," ");
+   }
+
+ }
+
+
+ void read_queries(char *query_file,main_array **array,int relation_number){
+   FILE *f=fopen(query_file,"r");
+   char* query;
+   size_t len = 0;
+   if(f==NULL){
+     printf("error in opening query_file\n");
+     exit(1);
+   }
+   while(getline(&query,&len,f)!= -1){
+
+     if(!strcmp(query,"F\n")){
+       printf("End of batch,press anything to procced to next batch\n");
+       getchar();
+     }
+
+     //printf("query= %s\n",query);
+     execute_query(query,array,relation_number);
+   }
+   fclose(f);
+   free(query);
  }
 
 
@@ -148,9 +191,7 @@
 
 
 
-
-
- void delete_all_array(main_array **array, int relation_number, char **directory, char **file){
+ void delete_all_array(main_array **array, int relation_number, char **directory, char **file,char **query_file){
 
    for(int i = 0 ; i < relation_number; i++){
        free( (*array)[i].index );
@@ -161,6 +202,7 @@
 
    free(*directory);
    free(*file);
+   free(*query_file);
 
    return;
  }

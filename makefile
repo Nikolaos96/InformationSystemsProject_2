@@ -11,4 +11,4 @@ clean:
 	rm -f main main.o function.o
 
 run:
-	./main -D files -F small.init
+	./main -D files -F small.init -Q files/small.work
