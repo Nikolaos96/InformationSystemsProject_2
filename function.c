@@ -18,11 +18,11 @@
     while(--argc){
         arg = *++argv;
         if(!strcmp(arg, "-F")){
-	         *file = malloc((strlen(*++argv) + 1) * sizeof(char));
-	          strcpy(*file, *argv);
+	    *file = malloc((strlen(*++argv) + 1) * sizeof(char));
+            strcpy(*file, *argv);
         }else if(!strcmp(arg, "-D")){
-          *dir = malloc((strlen(*++argv) + 1) * sizeof(char));
-           strcpy(*dir, *argv);
+            *dir = malloc((strlen(*++argv) + 1) * sizeof(char));
+            strcpy(*dir, *argv);
         }
         if(argc > 1) argc--;
      }

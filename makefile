@@ -9,3 +9,6 @@ function.o: function.c
 
 clean:
 	rm -f main main.o function.o
+
+run:
+	./main -D files -F small.init
