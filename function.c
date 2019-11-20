@@ -150,8 +150,9 @@
 
 
 
-
-
+ /*
+  epistrefei pinaka me tis sxeseis
+ */
  void execute_query(char *query,main_array **array,int relation_number){
      char *relations;
      char *relation;
@@ -189,6 +190,12 @@
 
 
 
+ // theloume sinartisi pou na epistrefei 4 times diladi tiw 2 sxesei kai tiw 2 stiles pou tha ginei to join
+ // episis prepei na epistrefei kai to filtro
+ // episis otan exei ftasei sto telos prepei na epistredei oti den exoyme alo join h kapoio filtro
+
+
+
 
 
  void read_queries(char *query_file,main_array **array,int relation_number){
@@ -209,7 +216,18 @@
        continue;
      }
 
+
+
+
+
      execute_query(query,array,relation_number);
+
+
+
+
+
+
+
    }
 
    fclose(f);
