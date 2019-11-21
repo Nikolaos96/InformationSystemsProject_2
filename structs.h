@@ -1,6 +1,8 @@
 #ifndef __STRUCTS__
 #define __STRUCTS__
 #include <stdint.h>
+#include <stdbool.h>
+
 
 typedef struct tuple{
         uint64_t key;
@@ -20,4 +22,12 @@ typedef struct main_array{
 }main_array;
 
 
+typedef struct q{
+	bool join; // join = TRUE
+
+	int relationA;
+	int columnA;
+	int relationB; 	      // gia ta filtra to   0 - (=)    1 - (>)     2 - (<)
+	uint64_t columnB;
+}q;
 #endif

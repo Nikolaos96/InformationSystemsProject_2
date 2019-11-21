@@ -153,39 +153,21 @@
  /*
   epistrefei pinaka me tis sxeseis
  */
- void execute_query(char *query,main_array **array,int relation_number){
+ void take_relations(char *query, int *tables, int tables_size){
      char *relations;
      char *relation;
 
-     int *rel = malloc(relation_number * sizeof(int));
-     if(rel == NULL){
-         printf("Error malloc rel \n");
-         exit(1);
-     }
-
-
-
      relations  = strsep(&query,"|");
-     printf("token= %s\n",relations);
-     printf("query= %s\n",query);
-
 
      int i = 0;
      while(1){
          relation = strsep(&relations," ");
          if(relation == NULL) break;
-         rel[i] = atoi(relation);
+         tables[i] = atoi(relation);
          i++;
      }
 
-
-     for(i = i ; i < relation_number ; i++) rel[i] = -1;
-     for(i = 0 ; i < relation_number ; i++) printf("%d   ", rel[i]);
-     printf("\n");
-
-
-
-     free(rel);
+     for(i = i ; i < tables_size ; i++) tables[i] = -1;
  }
 
 
@@ -194,12 +176,46 @@
  // episis prepei na epistrefei kai to filtro
  // episis otan exei ftasei sto telos prepei na epistredei oti den exoyme alo join h kapoio filtro
 
+ int take_number_of_predicates(char *query){
+
+     int a = 0;
+     char *token, c1 = '&';
+     token = strtok(query, "|");
+     token = strtok(NULL, "|");
+
+     for(int i = 0 ; i < (int)strlen(token) ; i++){
+         if(token[i] == c1) a++;
+     }
+
+     return a+1;
+ }
+
+
+
+
+
+
+ void take_predicates(q *predicates, int number_of_predicates, char *query){
+     strsep(&query,"|");
+     char *predicates  = strsep(&query,"|");
+
+
+     for(int i = 0 ; i < number_of_predicates ; i++){
+         char *predicate = strsep(&predicates, "&");
+         
+     }
+
+
+ }
+
+
+
 
 
 
 
  void read_queries(char *query_file,main_array **array,int relation_number){
-   char* query;
+   char *query, query2[100];
    size_t len = 0;
 
    FILE *f=fopen(query_file,"r");
@@ -210,24 +226,48 @@
 
 
    while(getline(&query,&len,f)!= -1){
-     if(!strcmp(query,"F\n")){
-       printf("End of batch,press anything to procced to next batch\n");
-       getchar();
-       continue;
-     }
+        if(!strcmp(query,"F\n")){
+           printf("End of batch,press anything to procced to next batch\n");
+           getchar();
+           continue;
+       }
+
+       int *tables = malloc(relation_number * sizeof(int));
+       if(tables == NULL){
+	   printf("Error malloc tables \n");
+	   exit(1);
+       }
+       strcpy(query2, query);
+
+
+
+       take_relations(query2, &tables[0], relation_number); 	     // exoume tis sxeseis ston pinaka tables
+       strcpy(query2, query);
+
+
+       int number_of_predicates = take_number_of_predicates(query2); // pernoume to plithos ton join+fitler
+       strcpy(query2, query);
+       q *predicates = malloc(number_of_predicates * sizeof(q));
+       if(predicates == NULL){
+	   printf("Error malloc queries \n");
+           exit(1);
+       }
+
+       take_predicates(predicates, number_of_predicates, query2);
+       strcpy(query2, query);
 
 
 
 
-
-     execute_query(query,array,relation_number);
-
-
-
+       //for(int i = 0 ; i < relation_number ; i++) printf("%d   ", tables[i]);
+       printf("\n\n");
+       printf("take predicates    %d \n", number_of_predicates);
 
 
 
 
+       free(predicates);
+       free(tables);
    }
 
    fclose(f);
