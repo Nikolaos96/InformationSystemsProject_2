@@ -197,12 +197,47 @@
 
  void take_predicates(q *predicates, int number_of_predicates, char *query){
      strsep(&query,"|");
-     char *predicates  = strsep(&query,"|");
-
+     char *preds  = strsep(&query,"|");
+     char *temp_intval;
+     printf("preds= %s\n",preds);
 
      for(int i = 0 ; i < number_of_predicates ; i++){
-         char *predicate = strsep(&predicates, "&");
-         
+         char *predicate = strsep(&preds, "&");
+         printf("predicate= %s\n",predicate);
+         temp_intval= strsep(&predicate,"."); //pairnoume tin prwti sxesi,sto predicate menei oti uparxei meta tin .
+         predicates[0].relationA=atoi(temp_intval); //to 0 proswrino,stin katallili 8esi
+//edw isws la8os ama to colA einai >10
+         predicates[0].columnA=atoi(&predicate[0]);//pairnoume tin stili tis prwtis sxesis
+         predicate++; //kovoume tin stili tis prwtis sxesis
+
+         printf("new predicate= %s\n",predicate);
+         if(predicate[0]=='>' ){ //sigoura filtro
+           predicates[0].join=false;
+           predicates[0].relationB=1;
+           predicate++; //kovoume to >
+           temp_intval= strsep(&predicate," ");
+           predicates[0].columnB=atoi(temp_intval);
+           printf("join=%d relA= %d,columnA= %d,relB= %d,columnB= %lu\n",predicates[0].join,predicates[0].relationA,predicates[0].columnA,predicates[0].relationB,predicates[0].columnB);
+
+         }
+         else if(predicate[0]=='<' ){
+           predicates[0].join=false;
+           predicates[0].relationB=2;
+           predicate++; //kovoume to <
+           temp_intval= strsep(&predicate," ");
+           predicates[0].columnB=atoi(temp_intval);
+           printf("join=%d relA= %d,columnA= %d,relB= %d,columnB= %lu\n",predicates[0].join,predicates[0].relationA,predicates[0].columnA,predicates[0].relationB,predicates[0].columnB);
+         }
+         else if(predicate[0]=='='){//den kseroume an prokeitai gia filtro i join
+
+         }
+
+         }
+
+
+
+
+
      }
 
 
@@ -234,8 +269,8 @@
 
        int *tables = malloc(relation_number * sizeof(int));
        if(tables == NULL){
-	   printf("Error malloc tables \n");
-	   exit(1);
+	        printf("Error malloc tables \n");
+	        exit(1);
        }
        strcpy(query2, query);
 
@@ -260,8 +295,8 @@
 
 
        //for(int i = 0 ; i < relation_number ; i++) printf("%d   ", tables[i]);
-       printf("\n\n");
-       printf("take predicates    %d \n", number_of_predicates);
+      // printf("\n\n");
+      // printf("take predicates    %d \n", number_of_predicates);
 
 
 
