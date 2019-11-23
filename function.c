@@ -268,7 +268,12 @@
 
  }
 
+ void lets_go_for_predicates(main_array **array, int *tables, int relation_number, q *predicates, int number_of_predicates){
 
+
+
+
+ }
 
 
  void read_queries(char *query_file,main_array **array,int relation_number){
@@ -311,7 +316,8 @@
        take_predicates(predicates, number_of_predicates, query2);  // edw exoume ena pinaka apo ta predicate tou query
        strcpy(query2, query);
 
-       
+
+       lets_go_for_predicates(array, &tables[0], relation_number, predicates, number_of_predicates);
 
 
        free(predicates);
