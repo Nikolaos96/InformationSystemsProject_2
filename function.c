@@ -206,6 +206,7 @@
              sscanf(predicate, "%d %c %d %c %lu", &a1, &c1, &a2, &c2, &a3);
              printf("%d %c %d %c %lu\n", a1, c1, a2, c2, a3);
 
+             predicates[i].flag = false;
 	     predicates[i].join = false;
 	     predicates[i].relationA = a1;
  	     predicates[i].columnA = a2;
@@ -222,6 +223,7 @@
              sscanf(predicate, "%d %c %d %c %d %c %lu", &a1, &c1, &a2, &c2, &a3, &c3, &a4);
              printf("%d %c %d %c %d %c %lu \n", a1, c1, a2, c2, a3, c3, a4);
 
+             predicates[i].flag = false;
 	     predicates[i].join = true;
 	     predicates[i].relationA = a1;
 	     predicates[i].columnA = a2;

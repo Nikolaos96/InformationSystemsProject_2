@@ -25,6 +25,7 @@ typedef struct main_array{
 typedef struct q{
 	bool join; // join = TRUE
 
+	bool flag;
 	int relationA;
 	int columnA;
 	int relationB; 	      // gia ta filtra to   0 - (=)    1 - (>)     2 - (<)
