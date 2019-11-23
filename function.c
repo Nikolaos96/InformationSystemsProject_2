@@ -3,8 +3,6 @@
 
 
 
-
-
  /*
    take arguments from command line and init variables
  */
@@ -70,8 +68,6 @@
    strcat(init_file,workload_file);
 
    int relation_number = find_relation_number(init_file);
-   //printf("----------------------- %d \n", relation_number);
-
 
    *array = malloc(relation_number * sizeof(main_array));
    if(array==NULL){
@@ -87,8 +83,6 @@
        strcpy(file,directory);
        strcat(file,"/");
        strcat(file,r);
-       //printf("file to open= %s\n",file);
-
 
        FILE *fp = fopen(file, "rb");
        if(fp == NULL){
@@ -134,16 +128,6 @@
    }
    fclose(f);
 
-
-   /*for(int j=0;j<13;j++){
-    printf("%lu   %lu \n", (*array)[j].num_tuples, (*array)[j].num_columns);
-    printf("\n____________________________________________ \n\n");
-  }
-  for(int j = 0 ; j < (*array)[1].num_columns ; j++) printf("%d \n", (*array)[1].index[j]);
-   printf("\n____________________________________________ \n\n");
-   for(int j = 0 ; j < (*array)[1].num_tuples ; j++) printf("%lu \n", (*array)[1].relation_array[j]); */
-
-
    return relation_number;
  }
 
@@ -168,13 +152,11 @@
      }
 
      for(i = i ; i < tables_size ; i++) tables[i] = -1;
+
+     return;
  }
 
 
-
- // theloume sinartisi pou na epistrefei 4 times diladi tiw 2 sxesei kai tiw 2 stiles pou tha ginei to join
- // episis prepei na epistrefei kai to filtro
- // episis otan exei ftasei sto telos prepei na epistredei oti den exoyme alo join h kapoio filtro
 
  int take_number_of_predicates(char *query){
 
@@ -192,19 +174,63 @@
 
 
 
+ int take_tokens(char *str){
+     int a = 0;
+     for(int i = 0 ; i < (int)strlen(str) ; i++){
+         if(str[i] == '.') a++;
+     }
+     return a;
+ }
+
 
 
 
  void take_predicates(q *predicates, int number_of_predicates, char *query){
      strsep(&query,"|");
      char *preds  = strsep(&query,"|");
-     char *temp_intval;
-     printf("preds= %s\n",preds);
+     //char *temp_intval;
+     printf("preds= %s\n\n",preds);
 
      for(int i = 0 ; i < number_of_predicates ; i++){
          char *predicate = strsep(&preds, "&");
-         printf("predicate= %s\n",predicate);
-         temp_intval= strsep(&predicate,"."); //pairnoume tin prwti sxesi,sto predicate menei oti uparxei meta tin .
+         char A[100];
+         strcpy(A,predicate);
+
+         printf("------------  predicate= %s \n", predicate);
+
+         if(take_tokens(A) == 1){  // filtro
+
+	     int  a1, a2;
+	     uint64_t a3;
+	     char c1, c2;
+             sscanf(predicate, "%d %c %d %c %lu", &a1, &c1, &a2, &c2, &a3);
+             printf("%d %c %d %c %lu\n", a1, c1, a2, c2, a3);
+
+	     predicates[i].join = false;
+	     predicates[i].relationA = a1;
+ 	     predicates[i].columnA = a2;
+             if(c2 == '=') 	predicates[i].relationB = 0;
+	     else if(c2 == '>') predicates[i].relationB = 1;
+             else 		predicates[i].relationB = 2;
+	     predicates[i].columnB = a3;
+
+	 }else{  // join
+
+             int  a1, a2, a3;
+	     uint64_t a4;
+             char c1, c2, c3;
+             sscanf(predicate, "%d %c %d %c %d %c %lu", &a1, &c1, &a2, &c2, &a3, &c3, &a4);
+             printf("%d %c %d %c %d %c %lu \n", a1, c1, a2, c2, a3, c3, a4);
+
+	     predicates[i].join = true;
+	     predicates[i].relationA = a1;
+	     predicates[i].columnA = a2;
+	     predicates[i].relationB = a3;
+	     predicates[i].columnB = a4;
+
+	 }
+
+/*         temp_intval= strsep(&predicate,"."); //pairnoume tin prwti sxesi,sto predicate menei oti uparxei meta tin .
          predicates[0].relationA=atoi(temp_intval); //to 0 proswrino,stin katallili 8esi
 //edw isws la8os ama to colA einai >10
          predicates[0].columnA=atoi(&predicate[0]);//pairnoume tin stili tis prwtis sxesis
@@ -233,18 +259,12 @@
          }
 
          }
-
-
-
-
+*/
 
      }
 
 
  }
-
-
-
 
 
 
@@ -255,13 +275,13 @@
 
    FILE *f=fopen(query_file,"r");
    if(f==NULL){
-     printf("error in opening query_file\n");
-     exit(1);
+       printf("error in opening query_file\n");
+       exit(1);
    }
 
 
    while(getline(&query,&len,f)!= -1){
-        if(!strcmp(query,"F\n")){
+       if(!strcmp(query,"F\n")){
            printf("End of batch,press anything to procced to next batch\n");
            getchar();
            continue;
@@ -269,36 +289,27 @@
 
        int *tables = malloc(relation_number * sizeof(int));
        if(tables == NULL){
-	        printf("Error malloc tables \n");
-	        exit(1);
+           printf("Error malloc tables \n");
+	   exit(1);
        }
        strcpy(query2, query);
-
-
 
        take_relations(query2, &tables[0], relation_number); 	     // exoume tis sxeseis ston pinaka tables
        strcpy(query2, query);
 
 
-       int number_of_predicates = take_number_of_predicates(query2); // pernoume to plithos ton join+fitler
+       int number_of_predicates = take_number_of_predicates(query2);
        strcpy(query2, query);
        q *predicates = malloc(number_of_predicates * sizeof(q));
        if(predicates == NULL){
-	   printf("Error malloc queries \n");
+           printf("Error malloc queries \n");
            exit(1);
        }
 
-       take_predicates(predicates, number_of_predicates, query2);
+       take_predicates(predicates, number_of_predicates, query2);  // edw exoume ena pinaka apo ta predicate tou query
        strcpy(query2, query);
 
-
-
-
-       //for(int i = 0 ; i < relation_number ; i++) printf("%d   ", tables[i]);
-      // printf("\n\n");
-      // printf("take predicates    %d \n", number_of_predicates);
-
-
+       
 
 
        free(predicates);
@@ -310,8 +321,6 @@
 
    return;
  }
-
-
 
 
 
