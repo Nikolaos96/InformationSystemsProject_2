@@ -1,7 +1,8 @@
 /* function.c */
 #include "function.h"
-
-
+#include "sort_join.h"
+#include "join_list.h"
+#include "mid_list.h"
 
  /*
    take arguments from command line and init variables
@@ -231,49 +232,241 @@
 	     predicates[i].columnB = a4;
 
 	 }
+     }
 
-/*         temp_intval= strsep(&predicate,"."); //pairnoume tin prwti sxesi,sto predicate menei oti uparxei meta tin .
-         predicates[0].relationA=atoi(temp_intval); //to 0 proswrino,stin katallili 8esi
-//edw isws la8os ama to colA einai >10
-         predicates[0].columnA=atoi(&predicate[0]);//pairnoume tin stili tis prwtis sxesis
-         predicate++; //kovoume tin stili tis prwtis sxesis
+     return;
+ }
 
-         printf("new predicate= %s\n",predicate);
-         if(predicate[0]=='>' ){ //sigoura filtro
-           predicates[0].join=false;
-           predicates[0].relationB=1;
-           predicate++; //kovoume to >
-           temp_intval= strsep(&predicate," ");
-           predicates[0].columnB=atoi(temp_intval);
-           printf("join=%d relA= %d,columnA= %d,relB= %d,columnB= %lu\n",predicates[0].join,predicates[0].relationA,predicates[0].columnA,predicates[0].relationB,predicates[0].columnB);
 
+
+ void make_Rr1_Rr2(main_array **array, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a){
+     int r1;
+     uint64_t c1;
+
+     if( a == 1 ){
+         r1 = predicates[jj].relationA;
+         c1 = predicates[jj].columnA;
+     }else{
+         r1 = predicates[jj].relationB;
+	 c1 = predicates[jj].columnB;
+     }
+
+     // elegxo an gia tin sxesi r1 exoume kapoio filtro
+     int find_filter = 0;
+     int col, telestis;
+     uint64_t value;
+     for(int i = 0 ; i < number_of_predicates ; i++){
+	 if(predicates[i].join == false && predicates[i].flag == false){
+	     if(predicates[i].relationA == r1){ //exoume kapoio filtro gia tin sxesi r1
+	         find_filter = 1;
+		 predicates[i].flag = true;
+		 col = predicates[i].columnA;
+		 telestis = predicates[i].relationB;
+		 value = predicates[i].columnB;
+                 break;
+	     }
+	 }
+     }
+
+     printf("r1 %d\nc1 %lu\ncol %d\ntelestis %d\n value %lu \n", r1, c1, col, telestis, value);
+
+     // ara twra mporw na ftiaksw tin sxesi Rr1
+     int lines = 0;
+     if( find_filter ){ // einai 1 diladi exei filtro
+	 // prepei na metrisw poses grammes tou arxikou ikanopoun to filtro
+
+         for(int i = (*array)[tables[r1]].index[col] ; i < (*array)[tables[r1]].index[col] + (*array)[tables[r1]].num_tuples ; i++){
+	     if(telestis == 0){
+	         if( (*array)[tables[r1]].relation_array[i] == value) lines++;
+	     }else if(telestis == 1){
+		 if( (*array)[tables[r1]].relation_array[i] > value) lines++;
+	     }else{
+	         if( (*array)[tables[r1]].relation_array[i] < value) lines++;
+	     }
+	 }
+
+
+	 *Rr1 = malloc(sizeof(relation));
+         if(Rr1 == NULL){
+            printf("Error malloc Rr1 \n");
+            exit(1);
          }
-         else if(predicate[0]=='<' ){
-           predicates[0].join=false;
-           predicates[0].relationB=2;
-           predicate++; //kovoume to <
-           temp_intval= strsep(&predicate," ");
-           predicates[0].columnB=atoi(temp_intval);
-           printf("join=%d relA= %d,columnA= %d,relB= %d,columnB= %lu\n",predicates[0].join,predicates[0].relationA,predicates[0].columnA,predicates[0].relationB,predicates[0].columnB);
-         }
-         else if(predicate[0]=='='){//den kseroume an prokeitai gia filtro i join
+	 (*Rr1)->num_tuples = lines;
+         (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
+         if((*Rr1)->tuples == NULL){
+	     printf("Error malloc Rr");
+	     exit(1);
+	 }
 
+	 *Rr2 = malloc(sizeof(relation));
+	 if(Rr2 == NULL){
+            printf("Error malloc Rr1 \n");
+            exit(1);
+         }
+	 (*Rr2)->num_tuples = lines;
+         (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
+	 if((*Rr2)->tuples == NULL){
+             printf("Error malloc Rr");
+             exit(1);
          }
 
+         int j = 0;
+	 for(int i = (*array)[tables[r1]].index[col] ; i < (*array)[tables[r1]].index[col] + (*array)[tables[r1]].num_tuples ; i++){
+             if(telestis == 0){
+                 if( (*array)[tables[r1]].relation_array[i] == value ) {
+		     if(col > c1){
+		         (*Rr1)->tuples[j].key = (*array)[tables[r1]].relation_array[i - ((col-c1) * (*array)[tables[r1]].num_tuples)];
+		         (*Rr1)->tuples[j].payload = i - (*array)[tables[r1]].index[col] + 1;
+		     }else{
+			 (*Rr1)->tuples[j].key = (*array)[tables[r1]].relation_array[i + ((c1-col) * (*array)[tables[r1]].num_tuples)];
+                         (*Rr1)->tuples[j].payload = i - (*array)[tables[r1]].index[col] + 1;
+		     }
+		     j++;
+		 }
+             }else if(telestis == 1){
+                 if( (*array)[tables[r1]].relation_array[i] > value ){
+		     if(col > c1){
+                         (*Rr1)->tuples[j].key = (*array)[tables[r1]].relation_array[i - ((col-c1) * (*array)[tables[r1]].num_tuples)];
+                         (*Rr1)->tuples[j].payload = i - (*array)[tables[r1]].index[col] + 1;
+                     }else{
+                         (*Rr1)->tuples[j].key = (*array)[tables[r1]].relation_array[i + ((c1-col) * (*array)[tables[r1]].num_tuples)];
+                         (*Rr1)->tuples[j].payload = i - (*array)[tables[r1]].index[col] + 1;
+                     }
+                     j++;
+		 }
+             }else{
+                 if((*array)[tables[r1]].relation_array[i] < value ){
+		     if(col > c1){
+                         (*Rr1)->tuples[j].key = (*array)[tables[r1]].relation_array[i - ((col-c1) * (*array)[tables[r1]].num_tuples)];
+                         (*Rr1)->tuples[j].payload = i - (*array)[tables[r1]].index[col] + 1;
+                     }else{
+                         (*Rr1)->tuples[j].key = (*array)[tables[r1]].relation_array[i + ((c1-col) * (*array)[tables[r1]].num_tuples)];
+                         (*Rr1)->tuples[j].payload = i - (*array)[tables[r1]].index[col] + 1;
+                     }
+                     j++;
+		 }
+             }
          }
-*/
 
+     }else{ // einai 0 diladi den exei filtro
+	 lines = (*array)[tables[r1]].num_tuples;
+	 *Rr1 = malloc(sizeof(relation));
+	 if(Rr1 == NULL){
+	    printf("Error malloc Rr1 \n");
+	    exit(1);
+	 }
+
+         (*Rr1)->num_tuples = lines;
+	 (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
+         if((*Rr1)->tuples == NULL){
+             printf("Error malloc Rr1");
+             exit(1);
+         }
+
+	 *Rr2 = malloc(sizeof(relation));
+	 if(Rr2 == NULL){
+            printf("Error malloc Rr2 \n");
+            exit(1);
+         }
+
+	 (*Rr2)->num_tuples = lines;
+         (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
+         if((*Rr2)->tuples == NULL){
+             printf("Error malloc R2");
+             exit(1);
+         }
+
+         int k = (*array)[tables[r1]].index[c1];
+         for(int i = 0 ; i < lines ; i++){
+	     (*Rr1)->tuples[i].key = (*array)[tables[r1]].relation_array[k];
+             k++;
+	     (*Rr1)->tuples[i].payload = i + 1;
+	 }
+     }
+
+ }
+
+
+
+
+ void lets_go_for_predicates(main_array **array, int *tables, int relation_number, q *predicates, int number_of_predicates){
+     int i, ii = 0;
+     relation *Rr1, *Rr2;
+     relation *Ss1, *Ss2;
+
+     info_deikti join_list = NULL;
+     join_list = LIST_dimiourgia(&join_list);
+
+     main_pointer *imid_list = NULL;
+     imid_list = malloc(2 * sizeof(main_pointer));
+     if(imid_list == NULL){
+         printf("Error malloc imid_list \n");
+	 exit(1);
      }
 
 
+
+     for(i = 0 ; i < number_of_predicates ; i++){
+         if(predicates[i].join == false) continue; 	// trexoume to for mono gia ta join predicate
+
+	 if(ii == 0){
+	     ii++;
+	     if(predicates[i].relationA == predicates[i].relationB){
+		 printf("Self join \n");
+		 //
+	 	 //
+	     }else{
+		 make_Rr1_Rr2(array, tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
+		 make_Rr1_Rr2(array, tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
+
+		 recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);	// exoume ena thema edw vazei to apotelesma ston Rr2 enw tha eprepe ston Rr1
+		 recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
+
+//		 for(int jj=0 ; jj < Rr1->num_tuples ; jj++) printf("%lu   %lu \n", Rr1->tuples[jj].payload, Rr1->tuples[jj].key);
+//		 for(int jj=0 ; jj < Ss1->num_tuples ; jj++) printf("%lu   %lu \n", Ss1->tuples[jj].payload, Ss1->tuples[jj].key);
+
+		 // twra akolouthei to join opou ta apotelesmata tha mpoun stin lista gia ta join
+		 Sort_Merge_Join(&Rr1, &Ss1, &join_list);
+//		 printf("\napotelesmata einai  %d  \n", take_crowd_results(&join_list));
+//		 emfanisi(&join_list);
+//		 exit(0);
+
+		 imid_list[0] = MID_dimiourgia(&imid_list[0], 2, predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1, -1, -1);
+
+		 for(int k = 0 ; k < take_crowd_results(&join_list) ; k++){
+		     tuple t = take_row(&join_list, k);
+
+		     eisagogi_eggrafis_mid(&imid_list[0], t.key);
+		     eisagogi_eggrafis_mid(&imid_list[0], t.payload);
+		 }
+		 exit(0);
+
+		 lista_diagrafi(&join_list);	// diagrafw tin lista me to join - tha prepei na dimioyrgithei ksana gia ii == 2 kai ii == 3
+		 free(Rr1->tuples);	free(Rr1);
+		 free(Rr2->tuples); 	free(Rr2);
+		 free(Ss1->tuples);	free(Ss1);
+		 free(Ss2->tuples);	free(Ss2);
+	     }
+
+	 }else if(ii == 1){
+	     ii++;
+
+
+	    // kapou edw prepei na diagrapsw to imid_list[0]
+	    // efoson dimiourgisw to imid_list[1]
+	 }else if(ii == 2){
+	     ii++;
+
+	 }
+     }
+
+
+     free(imid_list);
+     return;
  }
 
- void lets_go_for_predicates(main_array **array, int *tables, int relation_number, q *predicates, int number_of_predicates){
 
 
-
-
- }
 
 
  void read_queries(char *query_file,main_array **array,int relation_number){

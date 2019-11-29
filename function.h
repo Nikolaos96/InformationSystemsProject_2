@@ -1,4 +1,4 @@
-[B#ifndef __FUNCTION__
+#ifndef __FUNCTION__
 #define __FUNCTION__
 
 #include <stdio.h>

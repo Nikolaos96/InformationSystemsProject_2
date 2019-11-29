@@ -31,4 +31,9 @@ typedef struct q{
 	int relationB; 	      // gia ta filtra to   0 - (=)    1 - (>)     2 - (<)
 	uint64_t columnB;
 }q;
+
+
+
+
+
 #endif
