@@ -189,7 +189,6 @@
  void take_predicates(q *predicates, int number_of_predicates, char *query){
      strsep(&query,"|");
      char *preds  = strsep(&query,"|");
-     //char *temp_intval;
      printf("preds= %s\n\n",preds);
 
      for(int i = 0 ; i < number_of_predicates ; i++){
@@ -236,6 +235,41 @@
 
      return;
  }
+
+
+
+
+
+ void malloc_Rr_Ss(relation **Rr1, relation **Rr2, int size){
+     *Rr1 = malloc(sizeof(relation));
+     if(Rr1 == NULL){
+	 printf("Error malloc Rr1 \n");
+	 exit(1);
+     }
+
+     (*Rr1)->num_tuples = size;
+     (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(uint64_t));
+     if((*Rr1)->tuples == NULL){
+	 printf("Error malloc (*Rr1)->tuples \n");
+	 exit(1);
+     }
+
+     *Rr2 = malloc(sizeof(relation));
+     if(Rr2 == NULL){
+         printf("Error malloc Rr2 \n");
+         exit(1);
+     }
+
+     (*Rr2)->num_tuples = size;
+     (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(uint64_t));
+     if((*Rr2)->tuples == NULL){
+         printf("Error malloc (*Rr2)->tuples \n");
+         exit(1);
+     }
+
+     return;
+ }
+
 
 
 
@@ -286,7 +320,10 @@
 	 }
 
 
-	 *Rr1 = malloc(sizeof(relation));
+ 	 malloc_Rr_Ss(Rr1, Rr2, lines);
+
+	 /////////////////////////////////////////////////
+/*	 *Rr1 = malloc(sizeof(relation));		/// isws ta malloc na ta vgalw apeksw
          if(Rr1 == NULL){
             printf("Error malloc Rr1 \n");
             exit(1);
@@ -298,7 +335,7 @@
 	     exit(1);
 	 }
 
-	 *Rr2 = malloc(sizeof(relation));
+	 *Rr2 = malloc(sizeof(relation));		/// isws ta malloc na ta vgalw apeksw
 	 if(Rr2 == NULL){
             printf("Error malloc Rr1 \n");
             exit(1);
@@ -309,6 +346,7 @@
              printf("Error malloc Rr");
              exit(1);
          }
+*/	 ////////////////////////////////////////////////////
 
          int j = 0;
 	 for(int i = (*array)[tables[r1]].index[col] ; i < (*array)[tables[r1]].index[col] + (*array)[tables[r1]].num_tuples ; i++){
@@ -350,12 +388,14 @@
 
      }else{ // einai 0 diladi den exei filtro
 	 lines = (*array)[tables[r1]].num_tuples;
-	 *Rr1 = malloc(sizeof(relation));
+
+	 malloc_Rr_Ss(Rr1, Rr2, lines);
+	 /////////////////////////////////////////////////////
+/*	 *Rr1 = malloc(sizeof(relation));			/// isws ta malloc na ta vgalw apeksw
 	 if(Rr1 == NULL){
 	    printf("Error malloc Rr1 \n");
 	    exit(1);
 	 }
-
          (*Rr1)->num_tuples = lines;
 	 (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
          if((*Rr1)->tuples == NULL){
@@ -363,7 +403,7 @@
              exit(1);
          }
 
-	 *Rr2 = malloc(sizeof(relation));
+	 *Rr2 = malloc(sizeof(relation));			/// isws ta malloc na ta vgalw apeksw
 	 if(Rr2 == NULL){
             printf("Error malloc Rr2 \n");
             exit(1);
@@ -375,6 +415,7 @@
              printf("Error malloc R2");
              exit(1);
          }
+*/	 //////////////////////////////////////////////////////////
 
          int k = (*array)[tables[r1]].index[c1];
          for(int i = 0 ; i < lines ; i++){
@@ -385,6 +426,179 @@
      }
 
  }
+
+
+
+
+
+ void make_Rr1_Rr2__2(main_array **array, main_pointer *mid_result, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a){
+     int r, c;
+
+     if(a == 1){
+         r = predicates[jj].relationA;
+	 c = predicates[jj].columnA;
+     }else{
+	 r = predicates[jj].relationB;
+	 c = predicates[jj].columnB;
+     }
+
+     int find_imid_result = 0;
+     if(r == take_relation(mid_result, 0))      find_imid_result = 1;
+     else if(r == take_relation(mid_result, 1)) find_imid_result = 2;
+
+     if(find_imid_result == 0){
+         // kalese tin proigoumeni make rr1 rr1
+         make_Rr1_Rr2(array, tables, predicates, number_of_predicates, jj, Rr1, Rr2, a);
+	 return;
+     }
+
+
+     int find_filter = 0;
+     int col, telestis;
+     uint64_t value;
+     for(int i = 0 ; i < number_of_predicates ; i++){
+	 if(predicates[i].join == false && predicates[i].flag == false){
+	     if(predicates[i].relationA == r){ //exoume kapoio filtro gia tin sxesi r1
+	         find_filter = 1;
+		 predicates[i].flag = true;
+		 col = predicates[i].columnA;
+		 telestis = predicates[i].relationB;
+		 value = predicates[i].columnB;
+                 break;
+	     }
+	 }
+     }
+
+
+
+
+
+     if( find_filter ){ // exoume kai filtro kai endiameso apotelesma
+
+         int *aa = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));	////////
+	 if(aa == NULL){
+	     printf("Error malloc aa \n");
+	     exit(1);
+	 }
+
+	 int k;
+         if(find_imid_result == 1) k = 0;
+         else                      k = 1;
+         for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
+             uint64_t rowid = take_rowid(mid_result, k);
+             k += 2;
+
+             int start_col = (*array)[tables[r]].index[col];
+	     uint64_t val = (*array)[tables[r]].relation_array[start_col + rowid];
+
+             if(telestis == 0){
+ 	         if(val == value) aa[i] = rowid;
+	         else 		  aa[i] = -1;
+	     }else if(telestis == 1){
+		 if(val > value)  aa[i] = rowid;
+		 else 		  aa[i] = -1;
+	     }else{
+		 if(val < value)  aa[i] = rowid;
+		 else             aa[i] = -1;
+	     }
+	 }
+
+
+	 int count = 0;
+	 for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
+	     if(aa[i] != -1) count++;
+	 }
+
+	 // to count einai to plithis ton apotelesmatwn apo ti filtro kai to endiameso apotelesma
+         ///////////////////////////////////////////////////////////////
+	 malloc_Rr_Ss(Rr1, Rr2, count);
+
+/*	 *Rr1 = malloc(sizeof(relation));
+         if(Rr1 == NULL){
+	     printf("Error");
+	     exit(1);
+	 }
+	 (*Rr1)->num_tuples = count;
+	 (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(uint64_t));
+	 if((*Rr1)->tuples == NULL){
+	     printf("Error");
+	     exit(1);
+	 }
+
+	 *Rr2 = malloc(sizeof(relation));
+         if(Rr2 == NULL){
+             printf("Error");
+             exit(1);
+         }
+         (*Rr2)->num_tuples = count;
+         (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(uint64_t));
+         if((*Rr2)->tuples == NULL){
+             printf("Error");
+             exit(1);
+         }
+*/	 ///////////////////////////////////////////////////////////
+
+	 int j = 0;
+         for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
+	      if(aa[i] != -1){
+                  (*Rr1)->tuples[j].payload = aa[i];
+		  (*Rr1)->tuples[j].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + aa[i]];
+		   j++;
+	      }
+	 }
+
+	 free(aa);
+
+     }else{
+
+
+         malloc_Rr_Ss(Rr1, Rr2, take_crowd_results_mid(mid_result));
+
+/*         ///////////////////////////////////////////////////////////
+         *Rr1 = malloc(sizeof(relation));
+         if(Rr1 == NULL){
+             printf("Error malloc Rr1 \n");
+             exit(1);
+         }
+         (*Rr1)->num_tuples = take_crowd_results_mid(mid_result);
+         (*Rr1)->tuples = malloc((*Rr1)->num_tuples);
+         if((*Rr1)->tuples == NULL){
+	     printf("Error malloc (*Rr1)->tuples \n");
+	     exit(1);
+         }
+
+         *Rr2 = malloc(sizeof(relation));
+         if(Rr2 == NULL){
+             printf("Error malloc Rr2 \n");
+             exit(1);
+         }
+         (*Rr2)->num_tuples = take_crowd_results_mid(mid_result);
+         (*Rr2)->tuples = malloc((*Rr2)->num_tuples);
+         if((*Rr2)->tuples == NULL){
+             printf("Error malloc (*Rr2)->tuples \n");
+             exit(1);
+         }
+*/         ////////////////////////////////////////////////////////
+
+         int k;
+         if(find_imid_result == 1) k = 0;
+	 else 			   k = 1;
+	 for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
+	     (*Rr1)->tuples[i].payload = take_rowid(mid_result, k);
+	     k += 2;
+         }
+
+	 // gia kathe roid prepei na paw ston katalilo pinaka kai stili kai na parw to key
+	 for(int i = 0 ; i < (*Rr1)->num_tuples ; i++){
+	     uint64_t rowid = (*Rr1)->tuples[i].payload;
+	     (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid];
+	 }
+     }
+
+     return;
+ }
+
+
 
 
 
