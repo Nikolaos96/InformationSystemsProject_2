@@ -15,7 +15,7 @@ void eisagogi_eggrafis_mid(main_pointer* linfo, uint64_t a);
 int take_crowd_results_mid(main_pointer *linfo);
 int take_relation(main_pointer *linfo, int r);
 
-int take_rowid(main_pointer *linfo, int r);
+uint64_t take_rowid(main_pointer *linfo, int r);
 //void emfanisi_mid(main_pointer* linfo);
 
 

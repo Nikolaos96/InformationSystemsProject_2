@@ -139,6 +139,8 @@
 	 return (*linfo)->results / (*linfo)->columns;
  }
 
+
+
  int take_relation(main_pointer *linfo, int r){
      if(r >= (*linfo)->columns){
 	 printf("Error take_relation mid_list \n");
@@ -149,16 +151,16 @@
 
 
 
- int take_rowid(main_pointer *linfo, int r){
+ uint64_t take_rowid(main_pointer *linfo, int r){
      node_pointer mapas = (*linfo)->arxi;
 
-     while(mapas != NULL){
-            if(r < mapas->size){
-                return mapas->array[r];
-            }else{
-                r = r - mapas->size;
-                mapas = mapas->epomenos;
-            }
+     while(1){
+        if(r < mapas->size){
+            return mapas->array[r];
+        }else{
+            r = r - mapas->size;
+            mapas = mapas->epomenos;
+        }
     }
     printf("Kati phge LATHOS \n\n");
  }

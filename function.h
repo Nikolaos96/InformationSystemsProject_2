@@ -19,7 +19,9 @@ int take_tokens(char *str);
 
 void take_predicates(q *predicates, int number_of_predicates, char *query);
 
-void malloc_Rr_Ss(relation **Rr1, relation **Rr2, int size);
+void malloc_Rr_Ss(relation **Rr1, relation **Rr2);
+
+void delete_Rr_Ss(relation **Rr1, relation **Rr2);
 void make_Rr1_Rr2(main_array **array, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a);
 
 void make_Rr1_Rr2__2(main_array **array, main_pointer *mid_result, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a);

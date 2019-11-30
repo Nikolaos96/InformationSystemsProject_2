@@ -4,6 +4,7 @@
 #include "join_list.h"
 #include "mid_list.h"
 
+
  /*
    take arguments from command line and init variables
  */
@@ -240,17 +241,10 @@
 
 
 
- void malloc_Rr_Ss(relation **Rr1, relation **Rr2, int size){
+ void malloc_Rr_Ss(relation **Rr1, relation **Rr2){
      *Rr1 = malloc(sizeof(relation));
      if(Rr1 == NULL){
 	 printf("Error malloc Rr1 \n");
-	 exit(1);
-     }
-
-     (*Rr1)->num_tuples = size;
-     (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(uint64_t));
-     if((*Rr1)->tuples == NULL){
-	 printf("Error malloc (*Rr1)->tuples \n");
 	 exit(1);
      }
 
@@ -260,15 +254,18 @@
          exit(1);
      }
 
-     (*Rr2)->num_tuples = size;
-     (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(uint64_t));
-     if((*Rr2)->tuples == NULL){
-         printf("Error malloc (*Rr2)->tuples \n");
-         exit(1);
-     }
+     return;
+ }
+
+ void delete_Rr_Ss(relation **Rr1, relation **Rr2){
+     free(Rr1);
+     free(Rr2);
 
      return;
  }
+
+
+
 
 
 
@@ -320,33 +317,21 @@
 	 }
 
 
- 	 malloc_Rr_Ss(Rr1, Rr2, lines);
-
 	 /////////////////////////////////////////////////
-/*	 *Rr1 = malloc(sizeof(relation));		/// isws ta malloc na ta vgalw apeksw
-         if(Rr1 == NULL){
-            printf("Error malloc Rr1 \n");
-            exit(1);
-         }
 	 (*Rr1)->num_tuples = lines;
          (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
          if((*Rr1)->tuples == NULL){
 	     printf("Error malloc Rr");
 	     exit(1);
 	 }
-
-	 *Rr2 = malloc(sizeof(relation));		/// isws ta malloc na ta vgalw apeksw
-	 if(Rr2 == NULL){
-            printf("Error malloc Rr1 \n");
-            exit(1);
-         }
 	 (*Rr2)->num_tuples = lines;
          (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
 	 if((*Rr2)->tuples == NULL){
              printf("Error malloc Rr");
              exit(1);
          }
-*/	 ////////////////////////////////////////////////////
+	 ////////////////////////////////////////////////////
+
 
          int j = 0;
 	 for(int i = (*array)[tables[r1]].index[col] ; i < (*array)[tables[r1]].index[col] + (*array)[tables[r1]].num_tuples ; i++){
@@ -389,33 +374,22 @@
      }else{ // einai 0 diladi den exei filtro
 	 lines = (*array)[tables[r1]].num_tuples;
 
-	 malloc_Rr_Ss(Rr1, Rr2, lines);
+
 	 /////////////////////////////////////////////////////
-/*	 *Rr1 = malloc(sizeof(relation));			/// isws ta malloc na ta vgalw apeksw
-	 if(Rr1 == NULL){
-	    printf("Error malloc Rr1 \n");
-	    exit(1);
-	 }
          (*Rr1)->num_tuples = lines;
 	 (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
          if((*Rr1)->tuples == NULL){
              printf("Error malloc Rr1");
              exit(1);
          }
-
-	 *Rr2 = malloc(sizeof(relation));			/// isws ta malloc na ta vgalw apeksw
-	 if(Rr2 == NULL){
-            printf("Error malloc Rr2 \n");
-            exit(1);
-         }
-
 	 (*Rr2)->num_tuples = lines;
          (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
          if((*Rr2)->tuples == NULL){
              printf("Error malloc R2");
              exit(1);
          }
-*/	 //////////////////////////////////////////////////////////
+	 //////////////////////////////////////////////////////////
+
 
          int k = (*array)[tables[r1]].index[c1];
          for(int i = 0 ; i < lines ; i++){
@@ -442,15 +416,30 @@
 	 c = predicates[jj].columnB;
      }
 
+     printf("pinakas   %d\nstili   %d\n", r, c);
+
+
      int find_imid_result = 0;
      if(r == take_relation(mid_result, 0))      find_imid_result = 1;
      else if(r == take_relation(mid_result, 1)) find_imid_result = 2;
+     printf("Find_imid_result   %d \n", find_imid_result);
+
+
+
+     int x;
+     printf("\nPata ena arithmo kai enter gia na sinexisw \n");
+     scanf("%d", &x);
+
+
 
      if(find_imid_result == 0){
-         // kalese tin proigoumeni make rr1 rr1
+         // kalese tin proigoumeni make rr1 rr2
          make_Rr1_Rr2(array, tables, predicates, number_of_predicates, jj, Rr1, Rr2, a);
 	 return;
      }
+
+     printf("\nDen mpika pata ena arithmo kai enter gia na sinexisw \n");
+     scanf("%d", &x);
 
 
      int find_filter = 0;
@@ -469,9 +458,10 @@
 	 }
      }
 
+     printf("find_filter   %d\n", find_filter);
 
 
-
+     
 
      if( find_filter ){ // exoume kai filtro kai endiameso apotelesma
 
@@ -509,34 +499,23 @@
 	     if(aa[i] != -1) count++;
 	 }
 
+
 	 // to count einai to plithis ton apotelesmatwn apo ti filtro kai to endiameso apotelesma
          ///////////////////////////////////////////////////////////////
-	 malloc_Rr_Ss(Rr1, Rr2, count);
-
-/*	 *Rr1 = malloc(sizeof(relation));
-         if(Rr1 == NULL){
-	     printf("Error");
-	     exit(1);
-	 }
 	 (*Rr1)->num_tuples = count;
 	 (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(uint64_t));
 	 if((*Rr1)->tuples == NULL){
 	     printf("Error");
 	     exit(1);
 	 }
-
-	 *Rr2 = malloc(sizeof(relation));
-         if(Rr2 == NULL){
-             printf("Error");
-             exit(1);
-         }
          (*Rr2)->num_tuples = count;
          (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(uint64_t));
          if((*Rr2)->tuples == NULL){
              printf("Error");
              exit(1);
          }
-*/	 ///////////////////////////////////////////////////////////
+	 ///////////////////////////////////////////////////////////
+
 
 	 int j = 0;
          for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
@@ -550,39 +529,25 @@
 	 free(aa);
 
      }else{
-
-
-         malloc_Rr_Ss(Rr1, Rr2, take_crowd_results_mid(mid_result));
-
-/*         ///////////////////////////////////////////////////////////
-         *Rr1 = malloc(sizeof(relation));
-         if(Rr1 == NULL){
-             printf("Error malloc Rr1 \n");
-             exit(1);
-         }
+	 ///////////////////////////////////////////////////////////
          (*Rr1)->num_tuples = take_crowd_results_mid(mid_result);
-         (*Rr1)->tuples = malloc((*Rr1)->num_tuples);
+         (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(uint64_t));
          if((*Rr1)->tuples == NULL){
 	     printf("Error malloc (*Rr1)->tuples \n");
 	     exit(1);
          }
-
-         *Rr2 = malloc(sizeof(relation));
-         if(Rr2 == NULL){
-             printf("Error malloc Rr2 \n");
-             exit(1);
-         }
          (*Rr2)->num_tuples = take_crowd_results_mid(mid_result);
-         (*Rr2)->tuples = malloc((*Rr2)->num_tuples);
+         (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(uint64_t));
          if((*Rr2)->tuples == NULL){
              printf("Error malloc (*Rr2)->tuples \n");
              exit(1);
          }
-*/         ////////////////////////////////////////////////////////
+         ////////////////////////////////////////////////////////////
 
          int k;
          if(find_imid_result == 1) k = 0;
 	 else 			   k = 1;
+
 	 for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
 	     (*Rr1)->tuples[i].payload = take_rowid(mid_result, k);
 	     k += 2;
@@ -594,7 +559,6 @@
 	     (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid];
 	 }
      }
-
      return;
  }
 
@@ -607,6 +571,10 @@
      int i, ii = 0;
      relation *Rr1, *Rr2;
      relation *Ss1, *Ss2;
+
+     malloc_Rr_Ss(&Rr1, &Rr2);
+     malloc_Rr_Ss(&Ss1, &Ss2);
+
 
      info_deikti join_list = NULL;
      join_list = LIST_dimiourgia(&join_list);
@@ -635,15 +603,13 @@
 
 		 recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);	// exoume ena thema edw vazei to apotelesma ston Rr2 enw tha eprepe ston Rr1
 		 recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
-
 //		 for(int jj=0 ; jj < Rr1->num_tuples ; jj++) printf("%lu   %lu \n", Rr1->tuples[jj].payload, Rr1->tuples[jj].key);
 //		 for(int jj=0 ; jj < Ss1->num_tuples ; jj++) printf("%lu   %lu \n", Ss1->tuples[jj].payload, Ss1->tuples[jj].key);
 
+
 		 // twra akolouthei to join opou ta apotelesmata tha mpoun stin lista gia ta join
 		 Sort_Merge_Join(&Rr1, &Ss1, &join_list);
-//		 printf("\napotelesmata einai  %d  \n", take_crowd_results(&join_list));
-//		 emfanisi(&join_list);
-//		 exit(0);
+
 
 		 imid_list[0] = MID_dimiourgia(&imid_list[0], 2, predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1, -1, -1);
 
@@ -653,31 +619,49 @@
 		     eisagogi_eggrafis_mid(&imid_list[0], t.key);
 		     eisagogi_eggrafis_mid(&imid_list[0], t.payload);
 		 }
-		 exit(0);
 
 		 lista_diagrafi(&join_list);	// diagrafw tin lista me to join - tha prepei na dimioyrgithei ksana gia ii == 2 kai ii == 3
-		 free(Rr1->tuples);	free(Rr1);
-		 free(Rr2->tuples); 	free(Rr2);
-		 free(Ss1->tuples);	free(Ss1);
-		 free(Ss2->tuples);	free(Ss2);
+		 free(Rr1->tuples);	free(Rr2->tuples);
+		 free(Ss1->tuples);	free(Ss2->tuples);
 	     }
 
 	 }else if(ii == 1){
 	     ii++;
 
+	     make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
+             //for(int k = 0 ; k < Rr1->num_tuples ; k++) printf("%lu    %lu \n", Rr1->tuples[k].payload, Rr1->tuples[k].key);
+	     make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
+	     for(int k = 0 ; k < Ss1->num_tuples ; k++) printf("%lu    %lu \n", Ss1->tuples[k].payload, Ss1->tuples[k].key);
+
+
+
+             exit(0);
+
+
+
+	     make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
+
+
 
 	    // kapou edw prepei na diagrapsw to imid_list[0]
 	    // efoson dimiourgisw to imid_list[1]
+	    lista_diagrafi(&join_list);    // diagrafw tin lista me to join - tha prepei na dimioyrgithei ksana gia ii == 2 kai ii == 3
+            free(Rr1->tuples);     free(Rr2->tuples);
+            free(Ss1->tuples);     free(Ss2->tuples);
 	 }else if(ii == 2){
 	     ii++;
 
 	 }
      }
-
+     delete_Rr_Ss(&Rr1, &Rr2);
+     delete_Rr_Ss(&Ss1, &Ss2);
 
      free(imid_list);
      return;
  }
+
+
+
 
 
 
