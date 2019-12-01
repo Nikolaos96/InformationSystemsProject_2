@@ -515,9 +515,27 @@
  }
 
 
- void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list){
+ void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list, int rel){
+     int k;
+     for(int i = 0 ; i < take_columns(&mid_result[0]) ; i++){
+         if(rel == take_relation(&mid_result[0], i)) k = i;	// k einai i stili apo to endiameso pou theloume ta rowid
+     }
+     // prepei na elegxoyme oxi tin k alla tin alli an einai idia me mia apo tis 2 stiles tou join
 
-
+     int l;
+     if(k == 0) l = 1;
+     else       l = 0;
+	 
+	 
+     for(int i = 0 ; i < ; i++){
+	 tuple t = take_tuple(join_list, i);
+	 
+         for(int j = 0 ; j < take_results(&imid_list[0]) ; j++){
+	     if( take_ssss(&imid_list[0], l) == ){
+	
+	     }
+	 }
+     }
 
  }
 
@@ -600,11 +618,13 @@
              exit(0);
 
 
-	     if(take_relation(imid_list, 0) == predicates[i].relationA || take_relation(imid_list, 0) == predicates[i].relationB)
-	         imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1;
-	     else
+	     if(take_relation(imid_list, 0) != predicates[i].relationA && take_relation(imid_list, 0) != predicates[i].relationB)
+	         imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1);
+		 make_second_intermid(join_list, imid_list, 2, take_relation(imid_list, 0));			       
+	     }else{
 		imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
-
+	        make_second_intermid(join_list, imid_list, 2, take_relation(imid_list, 1));
+	     }
 
 	     // make_second_intermid(join_list, imid_list, 2);
 
