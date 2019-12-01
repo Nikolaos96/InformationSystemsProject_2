@@ -515,10 +515,14 @@
  }
 
 
+
+
+
+
  void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list, int rel){
      int k;
      for(int i = 0 ; i < take_columns(&mid_result[0]) ; i++){
-         if(rel == take_relation(&mid_result[0], i)) k = i;	// k einai i stili apo to endiameso pou theloume ta rowid
+         if(rel == take_relations(&mid_result[0], i)) k = i;	// k einai i stili apo to endiameso pou theloume ta rowid  0 h 1
      }
      // prepei na elegxoyme oxi tin k alla tin alli an einai idia me mia apo tis 2 stiles tou join
 
@@ -527,17 +531,34 @@
      else       l = 0;
 	 
 	 
-     for(int i = 0 ; i < ; i++){
-	 tuple t = take_tuple(join_list, i);
+     for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
+	 tuple t = take_row(join_list, i);
 	 
-         for(int j = 0 ; j < take_results(&imid_list[0]) ; j++){
-	     if( take_ssss(&imid_list[0], l) == ){
-	
+         for(int j = 0 ; j < take_crowd_results_mid(&imid_list[0]) ; j++){
+	     if( take_rowid(&imid_list[0], l) == t.key){
+	     //if( take_rowid(&imid_list[0], l) == t.paylaod){
+	         if(l == 0){
+		     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], l+1));
+		     eisagogi_eggrafis_mid(&imid_list[1], t.key);
+		     eisagogi_eggrafis_mid(&imid_list[1], t.paylaod);
+		     // eisagogi_eggrafis_mid(&imid_list[1], t.paylaod);
+		     // isagogi_eggrafis_mid(&imid_list[1], t.key);
+		 }else{
+		     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], l-1));
+		     eisagogi_eggrafis_mid(&imid_list[1], t.key);
+		     eisagogi_eggrafis_mid(&imid_list[1], t.paylaod);
+		     // eisagogi_eggrafis_mid(&imid_list[1], t.paylaod);
+		     // isagogi_eggrafis_mid(&imid_list[1], t.key);
+		 }
 	     }
+	     l += 2;
 	 }
      }
-
+	
+     return;
  }
+
+
 
 
 
