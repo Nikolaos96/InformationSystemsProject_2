@@ -420,8 +420,11 @@
 
 
      int find_imid_result = 0;
-     if(r == take_relation(mid_result, 0))      find_imid_result = 1;
-     else if(r == take_relation(mid_result, 1)) find_imid_result = 2;
+     for(int i = 0 ; i < take_columns(mid_result) ; i++){
+	 if(r == take_relation(mid_result, i))
+	     find_imid_result = i+1;
+     }
+
      printf("Find_imid_result   %d \n", find_imid_result);
 
 
@@ -438,105 +441,58 @@
 	 return;
      }
 
+
      printf("\nDen mpika pata ena arithmo kai enter gia na sinexisw \n");
      scanf("%d", &x);
 
 
-     int find_filter = 0;
-     int col, telestis;
-     uint64_t value;
-     for(int i = 0 ; i < number_of_predicates ; i++){
-	 if(predicates[i].join == false && predicates[i].flag == false){
-	     if(predicates[i].relationA == r){ //exoume kapoio filtro gia tin sxesi r1
-	         find_filter = 1;
-		 predicates[i].flag = true;
-		 col = predicates[i].columnA;
-		 telestis = predicates[i].relationB;
-		 value = predicates[i].columnB;
-                 break;
-	     }
-	 }
-     }
-
-     printf("find_filter   %d\n", find_filter);
-
-
-     
-
-     if( find_filter ){ // exoume kai filtro kai endiameso apotelesma
-
-         int *aa = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));	////////
-	 if(aa == NULL){
-	     printf("Error malloc aa \n");
-	     exit(1);
-	 }
 
 	 int k;
-         if(find_imid_result == 1) k = 0;
-         else                      k = 1;
-         for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
-             uint64_t rowid = take_rowid(mid_result, k);
-             k += 2;
-
-             int start_col = (*array)[tables[r]].index[col];
-	     uint64_t val = (*array)[tables[r]].relation_array[start_col + rowid];
-
-             if(telestis == 0){
- 	         if(val == value) aa[i] = rowid;
-	         else 		  aa[i] = -1;
-	     }else if(telestis == 1){
-		 if(val > value)  aa[i] = rowid;
-		 else 		  aa[i] = -1;
-	     }else{
-		 if(val < value)  aa[i] = rowid;
-		 else             aa[i] = -1;
-	     }
-	 }
+         if(find_imid_result == 1)      k = 0;
+         else if(find_imid_result == 2) k = 1;
+	 else 				k = 2;
 
 
-	 int count = 0;
-	 for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
-	     if(aa[i] != -1) count++;
-	 }
-
-
-	 // to count einai to plithis ton apotelesmatwn apo ti filtro kai to endiameso apotelesma
-         ///////////////////////////////////////////////////////////////
-	 (*Rr1)->num_tuples = count;
-	 (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(uint64_t));
-	 if((*Rr1)->tuples == NULL){
-	     printf("Error");
+         // prepei na vrw posa diaforetika roid yparxoun ston endiameso
+         uint64_t *aa = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));
+	 if(aa == NULL){
+	     printf("Error malloc a \n");
 	     exit(1);
 	 }
-         (*Rr2)->num_tuples = count;
-         (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(uint64_t));
-         if((*Rr2)->tuples == NULL){
-             printf("Error");
-             exit(1);
-         }
-	 ///////////////////////////////////////////////////////////
 
+	 int rep = take_columns(mid_result);
 
 	 int j = 0;
          for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
-	      if(aa[i] != -1){
-                  (*Rr1)->tuples[j].payload = aa[i];
-		  (*Rr1)->tuples[j].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + aa[i]];
-		   j++;
-	      }
+	     uint64_t row = take_rowid(mid_result, k);
+	     k += rep;
+	     if(i == 0){
+		 aa[j] = row;
+		 j++;
+	     }else{
+		 int find = 0;
+	         for(int l = 0 ; l < j ; l++){
+		     if(aa[l] == row){
+		         find = 1;
+			 break;
+		     }
+		 }
+		 if(find == 0){
+		     aa[j] = row;
+		     j++;
+		 }
+	     }
 	 }
 
-	 free(aa);
-
-     }else{
+	 // exoume j-1 diaforetika rowid kai xeroume poia einai apo ton pinaka a
 	 ///////////////////////////////////////////////////////////
-         (*Rr1)->num_tuples = take_crowd_results_mid(mid_result);
+         (*Rr1)->num_tuples = j-1;
          (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(uint64_t));
          if((*Rr1)->tuples == NULL){
 	     printf("Error malloc (*Rr1)->tuples \n");
 	     exit(1);
          }
-         (*Rr2)->num_tuples = take_crowd_results_mid(mid_result);
+         (*Rr2)->num_tuples = j-1;
          (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(uint64_t));
          if((*Rr2)->tuples == NULL){
              printf("Error malloc (*Rr2)->tuples \n");
@@ -544,13 +500,8 @@
          }
          ////////////////////////////////////////////////////////////
 
-         int k;
-         if(find_imid_result == 1) k = 0;
-	 else 			   k = 1;
-
-	 for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
-	     (*Rr1)->tuples[i].payload = take_rowid(mid_result, k);
-	     k += 2;
+	 for(int i = 0 ; i < j ; i++){
+	     (*Rr1)->tuples[i].payload = aa[i];
          }
 
 	 // gia kathe roid prepei na paw ston katalilo pinaka kai stili kai na parw to key
@@ -558,12 +509,17 @@
 	     uint64_t rowid = (*Rr1)->tuples[i].payload;
 	     (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid];
 	 }
-     }
+	 free(aa);
+
      return;
  }
 
 
+ void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list){
 
+
+
+ }
 
 
 
@@ -577,7 +533,6 @@
 
 
      info_deikti join_list = NULL;
-     join_list = LIST_dimiourgia(&join_list);
 
      main_pointer *imid_list = NULL;
      imid_list = malloc(2 * sizeof(main_pointer));
@@ -598,6 +553,8 @@
 		 //
 	 	 //
 	     }else{
+		 join_list = LIST_dimiourgia(&join_list);
+
 		 make_Rr1_Rr2(array, tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
 		 make_Rr1_Rr2(array, tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
 
@@ -613,6 +570,7 @@
 
 		 imid_list[0] = MID_dimiourgia(&imid_list[0], 2, predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1, -1, -1);
 
+
 		 for(int k = 0 ; k < take_crowd_results(&join_list) ; k++){
 		     tuple t = take_row(&join_list, k);
 
@@ -627,27 +585,37 @@
 
 	 }else if(ii == 1){
 	     ii++;
+	     join_list = LIST_dimiourgia(&join_list);
 
 	     make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
              //for(int k = 0 ; k < Rr1->num_tuples ; k++) printf("%lu    %lu \n", Rr1->tuples[k].payload, Rr1->tuples[k].key);
 	     make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
-	     for(int k = 0 ; k < Ss1->num_tuples ; k++) printf("%lu    %lu \n", Ss1->tuples[k].payload, Ss1->tuples[k].key);
+	     //for(int k = 0 ; k < Ss1->num_tuples ; k++) printf("%lu    %lu \n", Ss1->tuples[k].payload, Ss1->tuples[k].key);
+	     recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
+	     recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
 
+	     Sort_Merge_Join(&Rr1, &Ss1, &join_list);
 
 
              exit(0);
 
 
+	     if(take_relation(imid_list, 0) == predicates[i].relationA || take_relation(imid_list, 0) == predicates[i].relationB)
+	         imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1;
+	     else
+		imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
 
-	     make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
+
+	     // make_second_intermid(join_list, imid_list, 2);
 
 
 
-	    // kapou edw prepei na diagrapsw to imid_list[0]
-	    // efoson dimiourgisw to imid_list[1]
-	    lista_diagrafi(&join_list);    // diagrafw tin lista me to join - tha prepei na dimioyrgithei ksana gia ii == 2 kai ii == 3
-            free(Rr1->tuples);     free(Rr2->tuples);
-            free(Ss1->tuples);     free(Ss2->tuples);
+
+	     // kapou edw prepei na diagrapsw to imid_list[0]
+	     // efoson dimiourgisw to imid_list[1]
+	     lista_diagrafi(&join_list);    // diagrafw tin lista me to join - tha prepei na dimioyrgithei ksana gia ii == 2 kai ii == 3
+             free(Rr1->tuples);     free(Rr2->tuples);
+             free(Ss1->tuples);     free(Ss2->tuples);
 	 }else if(ii == 2){
 	     ii++;
 

@@ -139,6 +139,9 @@
 	 return (*linfo)->results / (*linfo)->columns;
  }
 
+ int take_columns(main_pointer *linfo){
+     return (*linfo)->columns;
+ }
 
 
  int take_relation(main_pointer *linfo, int r){
@@ -147,6 +150,15 @@
 	 exit(1);
      }
      return (*linfo)->array_relations[r];
+ }
+
+
+ int take_col(main_pointer *linfo, int r){
+     if(r >= (*linfo)->columns){
+         printf("Error take_relation mid_list \n");
+         exit(1);
+     }
+     return (*linfo)->array_columns[r];
  }
 
 

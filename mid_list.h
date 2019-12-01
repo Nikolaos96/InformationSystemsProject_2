@@ -13,7 +13,10 @@ void eisagogi_komvou_mid(main_pointer* linfo);
 void eisagogi_eggrafis_mid(main_pointer* linfo, uint64_t a);
 
 int take_crowd_results_mid(main_pointer *linfo);
+
+int take_columns(main_pointer *linfo);
 int take_relation(main_pointer *linfo, int r);
+int take_col(main_pointer *linfo, int r);
 
 uint64_t take_rowid(main_pointer *linfo, int r);
 //void emfanisi_mid(main_pointer* linfo);

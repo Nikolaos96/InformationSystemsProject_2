@@ -7,7 +7,7 @@
 #include <time.h>
 #include "structs.h"
 #include "mid_list.h"
-
+#include "join_list.h"
 
 void take_arguments(int argc,char *argv[],char **file, char **dir,char **query_file);
 int find_relation_number(char *init_file);
@@ -25,6 +25,7 @@ void delete_Rr_Ss(relation **Rr1, relation **Rr2);
 void make_Rr1_Rr2(main_array **array, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a);
 
 void make_Rr1_Rr2__2(main_array **array, main_pointer *mid_result, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a);
+void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list);
 
 void lets_go_for_predicates(main_array **array, int *tables, int relation_number, q *predicates, int number_of_predicates);
 void read_queries(char *query_file,main_array **array,int relation_number);
