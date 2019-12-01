@@ -487,13 +487,13 @@
 	 // exoume j-1 diaforetika rowid kai xeroume poia einai apo ton pinaka a
 	 ///////////////////////////////////////////////////////////
          (*Rr1)->num_tuples = j-1;
-         (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(uint64_t));
+         (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
          if((*Rr1)->tuples == NULL){
 	     printf("Error malloc (*Rr1)->tuples \n");
 	     exit(1);
          }
          (*Rr2)->num_tuples = j-1;
-         (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(uint64_t));
+         (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
          if((*Rr2)->tuples == NULL){
              printf("Error malloc (*Rr2)->tuples \n");
              exit(1);
