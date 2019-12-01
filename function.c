@@ -258,8 +258,8 @@
  }
 
  void delete_Rr_Ss(relation **Rr1, relation **Rr2){
-     free(Rr1);
-     free(Rr2);
+     free(*Rr1);
+     free(*Rr2);
 
      return;
  }
@@ -486,13 +486,13 @@
 
 	 // exoume j-1 diaforetika rowid kai xeroume poia einai apo ton pinaka a
 	 ///////////////////////////////////////////////////////////
-         (*Rr1)->num_tuples = j-1;
+         (*Rr1)->num_tuples = j;
          (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
          if((*Rr1)->tuples == NULL){
 	     printf("Error malloc (*Rr1)->tuples \n");
 	     exit(1);
          }
-         (*Rr2)->num_tuples = j-1;
+         (*Rr2)->num_tuples = j;
          (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
          if((*Rr2)->tuples == NULL){
              printf("Error malloc (*Rr2)->tuples \n");
@@ -520,41 +520,41 @@
 
 
  void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list, int rel){
-     int k;
-     for(int i = 0 ; i < take_columns(&mid_result[0]) ; i++){
-         if(rel == take_relations(&mid_result[0], i)) k = i;	// k einai i stili apo to endiameso pou theloume ta rowid  0 h 1
+  /*   int k;
+     for(int i = 0 ; i < take_columns(&imid_list[0]) ; i++){
+         if(rel == take_relations(&imid_list[0], i)) k = i;	// k einai i stili apo to endiameso pou theloume ta rowid  0 h 1
      }
      // prepei na elegxoyme oxi tin k alla tin alli an einai idia me mia apo tis 2 stiles tou join
 
      int l;
      if(k == 0) l = 1;
      else       l = 0;
-	 
-	 
+
+
      for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
 	 tuple t = take_row(join_list, i);
-	 
+
          for(int j = 0 ; j < take_crowd_results_mid(&imid_list[0]) ; j++){
 	     if( take_rowid(&imid_list[0], l) == t.key){
 	     //if( take_rowid(&imid_list[0], l) == t.paylaod){
 	         if(l == 0){
 		     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], l+1));
 		     eisagogi_eggrafis_mid(&imid_list[1], t.key);
-		     eisagogi_eggrafis_mid(&imid_list[1], t.paylaod);
-		     // eisagogi_eggrafis_mid(&imid_list[1], t.paylaod);
+		     eisagogi_eggrafis_mid(&imid_list[1], t.payload);
+		     // eisagogi_eggrafis_mid(&imid_list[1], t.payload);
 		     // isagogi_eggrafis_mid(&imid_list[1], t.key);
 		 }else{
 		     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], l-1));
 		     eisagogi_eggrafis_mid(&imid_list[1], t.key);
-		     eisagogi_eggrafis_mid(&imid_list[1], t.paylaod);
-		     // eisagogi_eggrafis_mid(&imid_list[1], t.paylaod);
+		     eisagogi_eggrafis_mid(&imid_list[1], t.payload);
+		     // eisagogi_eggrafis_mid(&imid_list[1], t.payload);
 		     // isagogi_eggrafis_mid(&imid_list[1], t.key);
 		 }
 	     }
 	     l += 2;
 	 }
      }
-	
+*/
      return;
  }
 
@@ -639,15 +639,14 @@
              exit(0);
 
 
-	     if(take_relation(imid_list, 0) != predicates[i].relationA && take_relation(imid_list, 0) != predicates[i].relationB)
+	     if(take_relation(imid_list, 0) != predicates[i].relationA && take_relation(imid_list, 0) != predicates[i].relationB){
 	         imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1);
-		 make_second_intermid(join_list, imid_list, 2, take_relation(imid_list, 0));			       
+		 make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0));
 	     }else{
 		imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
-	        make_second_intermid(join_list, imid_list, 2, take_relation(imid_list, 1));
+	        make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1));
 	     }
 
-	     // make_second_intermid(join_list, imid_list, 2);
 
 
 
