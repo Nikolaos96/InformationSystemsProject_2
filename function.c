@@ -519,10 +519,10 @@
 
 
 
- void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list, int rel){
-  /*   int k;
+ void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list, int rel, int join_stil_A, int join_stil_B){
+     int k;
      for(int i = 0 ; i < take_columns(&imid_list[0]) ; i++){
-         if(rel == take_relations(&imid_list[0], i)) k = i;	// k einai i stili apo to endiameso pou theloume ta rowid  0 h 1
+         if(rel == take_relation(&imid_list[0], i)) k = i;	// k einai i stili apo to endiameso pou theloume ta rowid  0 h 1
      }
      // prepei na elegxoyme oxi tin k alla tin alli an einai idia me mia apo tis 2 stiles tou join
 
@@ -530,31 +530,60 @@
      if(k == 0) l = 1;
      else       l = 0;
 
+     int join;
+     if(take_relation(&imid_list[0], l) == join_stil_A)
+         join = 0;	// key
+     else
+	 join = 1;	// payload
 
+
+     printf("Endiameso stous pinakes %d   %d \n", take_relation(&imid_list[0], 0), take_relation(&imid_list[0], 1));
+     printf("To join exei ginei stous pinakes   %d    %d \n", join_stil_A, join_stil_B);
+
+     printf("Thelw thn stili apo to endiameso   %d \n", k);
+
+     printf("to k einai h stili pou thelw %d   kai o pinakas pou thelw  %d \n", k , take_relation(&imid_list[0], k));
+     printf("to l einai i stili pou sigkrino an isoute me tin stili apo to join  %d kai o pinakas einai %d \n", l, take_relation(&imid_list[0], l));
+
+     //for(int i = 0 ; i < take_columns(&imid_list[1]) ; i++) printf("%d  ", take_relation(&imid_list[1], i));
+
+
+     int index; // einai lamda oxi ena
+     int val;
      for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
 	 tuple t = take_row(join_list, i);
-
+         index = l;
+         val = k;
          for(int j = 0 ; j < take_crowd_results_mid(&imid_list[0]) ; j++){
-	     if( take_rowid(&imid_list[0], l) == t.key){
-	     //if( take_rowid(&imid_list[0], l) == t.paylaod){
-	         if(l == 0){
-		     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], l+1));
+             if(join == 0){
+	         if( take_rowid(&imid_list[0], index) == t.key){				 //// oxi ena alla lamda
+		     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], val));
 		     eisagogi_eggrafis_mid(&imid_list[1], t.key);
-		     eisagogi_eggrafis_mid(&imid_list[1], t.payload);
-		     // eisagogi_eggrafis_mid(&imid_list[1], t.payload);
-		     // isagogi_eggrafis_mid(&imid_list[1], t.key);
-		 }else{
-		     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], l-1));
-		     eisagogi_eggrafis_mid(&imid_list[1], t.key);
-		     eisagogi_eggrafis_mid(&imid_list[1], t.payload);
-		     // eisagogi_eggrafis_mid(&imid_list[1], t.payload);
-		     // isagogi_eggrafis_mid(&imid_list[1], t.key);
-		 }
-	     }
-	     l += 2;
+	             eisagogi_eggrafis_mid(&imid_list[1], t.payload);
+	         }
+                 val += 2;
+	         index += 2;								 // oxi ena alla lamda
+	    }else{
+	        if( take_rowid(&imid_list[0], index) == t.payload){				 // edw exoume l oxi ena
+                     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], val)); // edw exoume lamda
+                     eisagogi_eggrafis_mid(&imid_list[1], t.key);			 // edw exoume lamda
+                     eisagogi_eggrafis_mid(&imid_list[1], t.payload);		 	 // edw exoume lamda
+	        }
+		val +=  2;
+                index += 2;									 // oxi ena alla lamda
+	    }
 	 }
      }
-*/
+
+     int x = 0;
+     for(int i = 0 ; i < take_crowd_results_mid(&imid_list[1]) ; i++){
+         printf("%lu  ", take_rowid(&imid_list[1], x));
+         x++;
+         printf("%lu  ", take_rowid(&imid_list[1], x));
+	 x++;
+	 printf("%lu \n", take_rowid(&imid_list[1], x));
+         x++;
+     }
      return;
  }
 
@@ -579,7 +608,8 @@
          printf("Error malloc imid_list \n");
 	 exit(1);
      }
-
+     imid_list[0] = NULL;
+     imid_list[1] = NULL;
 
 
      for(i = 0 ; i < number_of_predicates ; i++){
@@ -625,7 +655,8 @@
 	 }else if(ii == 1){
 	     ii++;
 	     join_list = LIST_dimiourgia(&join_list);
-
+	     // yparxei mia periptsi pou den tin eksetaoyme
+	     //
 	     make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
              //for(int k = 0 ; k < Rr1->num_tuples ; k++) printf("%lu    %lu \n", Rr1->tuples[k].payload, Rr1->tuples[k].key);
 	     make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
@@ -636,35 +667,59 @@
 	     Sort_Merge_Join(&Rr1, &Ss1, &join_list);
 
 
+             printf("11111111111111111\n");
+	     if(take_relation(imid_list, 0) != predicates[i].relationA && take_relation(imid_list, 0) != predicates[i].relationB){
+	         imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1);
+		 make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0), predicates[i].relationA, predicates[i].relationB);
+	     }else{
+		imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
+	        make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1), predicates[i].relationA, predicates[i].relationB);
+	     }
+             printf("2222222222222\n");
              exit(0);
 
 
-	     if(take_relation(imid_list, 0) != predicates[i].relationA && take_relation(imid_list, 0) != predicates[i].relationB){
-	         imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1);
-		 make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0));
-	     }else{
-		imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
-	        make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1));
-	     }
 
-
-
-
-
-	     // kapou edw prepei na diagrapsw to imid_list[0]
-	     // efoson dimiourgisw to imid_list[1]
-	     lista_diagrafi(&join_list);    // diagrafw tin lista me to join - tha prepei na dimioyrgithei ksana gia ii == 2 kai ii == 3
+	     lista_diagrafi_mid(&imid_list[0]);
+	     imid_list[0] = NULL;
+	     lista_diagrafi(&join_list);    // diagrafw tin lista me to join - tha prepei na dimioyrgithei ksana gia ii == 2
              free(Rr1->tuples);     free(Rr2->tuples);
              free(Ss1->tuples);     free(Ss2->tuples);
 	 }else if(ii == 2){
 	     ii++;
+             join_list = LIST_dimiourgia(&join_list);
+             make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
+	     make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
+	     recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
+             recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
+	     Sort_Merge_Join(&Rr1, &Ss1, &join_list);
 
+
+	     //
+	     //
+	     //
+
+
+             lista_diagrafi_mid(&imid_list[1]);
+	     imid_list[1] = NULL;
+	     lista_diagrafi(&join_list);
+	     free(Rr1->tuples);     free(Rr2->tuples);
+             free(Ss1->tuples);     free(Ss2->tuples);
 	 }
      }
      delete_Rr_Ss(&Rr1, &Rr2);
      delete_Rr_Ss(&Ss1, &Ss2);
 
+
+
+     if(imid_list[0] != NULL){
+         lista_diagrafi_mid(&imid_list[0]);
+     }else{
+         lista_diagrafi_mid(&imid_list[1]);
+     }
      free(imid_list);
+
+
      return;
  }
 

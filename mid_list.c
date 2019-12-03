@@ -139,6 +139,8 @@
 	 return (*linfo)->results / (*linfo)->columns;
  }
 
+
+
  int take_columns(main_pointer *linfo){
      return (*linfo)->columns;
  }
