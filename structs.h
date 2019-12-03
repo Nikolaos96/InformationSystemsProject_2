@@ -32,7 +32,10 @@ typedef struct q{
 	uint64_t columnB;
 }q;
 
-
+typedef struct checksum_struct{
+  int table;
+  int row;
+}checksum_struct;
 
 
 

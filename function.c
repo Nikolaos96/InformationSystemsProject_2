@@ -184,6 +184,27 @@
      return a;
  }
 
+int find_checksum_number(char* query){
+   strsep(&query,"|");
+   strsep(&query,"|");
+
+   return take_tokens(query);
+}
+
+
+void take_checksums(checksum_struct *checksums,int number_of_checksums,char* query){
+  strsep(&query,"|");
+  strsep(&query,"|");
+  //printf("query==%s\n\n",query);
+  for(int i=0;i<number_of_checksums;i++){
+    checksums[i].table = atoi(&query[0]);
+    query+=2;
+
+    checksums[i].row = atoi(&query[0]);
+    query+=2;
+
+  }
+}
 
 
 
@@ -560,7 +581,7 @@
 	 }
      }
 
-     int x = 0;
+  /*   int x = 0;
      for(int i = 0 ; i < take_crowd_results_mid(&imid_list[1]) ; i++){
          printf("%lu  ", take_rowid(&imid_list[1], x));
          x++;
@@ -568,15 +589,67 @@
 	 x++;
 	 printf("%lu \n", take_rowid(&imid_list[1], x));
          x++;
-     }
+     }*/
      return;
+ }
+
+ void print_checksums(main_array **array, int *tables,checksum_struct *checksums,int number_of_checksums,main_pointer *imid_list,int imid_index){
+
+        uint64_t *aa = malloc(take_crowd_results_mid(&imid_list[imid_index]) * sizeof(uint64_t));
+        if(aa == NULL){
+            printf("Error malloc aa \n");
+            exit(1);
+        }
+
+        int rep = take_columns(&imid_list[imid_index]);
+        for(int loop=0;loop<number_of_checksums;loop++){//gia ka8e checksum
+          uint64_t sum=0;
+          int j=0,k=0;
+          int number_of_columns = take_columns(&imid_list[imid_index]);
+
+          for(int index=0;index<number_of_columns;index++){//vriskoume gia to ka8e table se poia 8esi tou endiamesou apo8ikeuetai
+            if(checksums[loop].table==take_relation(&imid_list[imid_index],index)){
+              k=index;
+              break;
+            }
+          }
+          printf("k===%d\n",k);
+
+          for(int i = 0 ; i < take_crowd_results_mid(&imid_list[imid_index]) ; i++){
+              uint64_t row = take_rowid(&imid_list[imid_index], k);
+              k += rep;
+              if(i == 0){
+                aa[j] = row;
+                j++;
+              }
+              else{
+                int find = 0;
+                for(int l = 0 ; l < j ; l++){
+                if(aa[l] == row){
+                  find = 1;
+                  break;
+                }
+              }
+              if(find == 0){
+                aa[j] = row;
+                j++;
+              }
+            }
+        }
+        printf("j===%d\n",j);
+        for(int i = 0 ; i < j+1 ; i++){
+     	     sum += (*array)[tables[checksums[loop].table]].relation_array[(*array)[tables[checksums[loop].table]].index[checksums[loop].row] + aa[i] -1]; //tables[0],index[1]
+          // printf("sum===%lu\n",sum);
+     	 }
+       printf("sum===%lu\n",sum);
+      }
+      free(aa);
  }
 
 
 
 
-
- void lets_go_for_predicates(main_array **array, int *tables, int relation_number, q *predicates, int number_of_predicates){
+ void lets_go_for_predicates(main_array **array, int *tables, int relation_number, q *predicates, int number_of_predicates,checksum_struct *checksums,int number_of_checksums){
      int i, ii = 0;
      relation *Rr1, *Rr2;
      relation *Ss1, *Ss2;
@@ -658,12 +731,17 @@
              printf("11111111111111111\n");
 	     if(take_relation(imid_list, 0) != predicates[i].relationA && take_relation(imid_list, 0) != predicates[i].relationB){
 	         imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1);
-		 make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0), predicates[i].relationA, predicates[i].relationB);
+		       make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0), predicates[i].relationA, predicates[i].relationB);
 	     }else{
-		imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
+		      imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
 	        make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1), predicates[i].relationA, predicates[i].relationB);
 	     }
              printf("2222222222222\n");
+             for(int i=0;i<3;i++)
+             printf("rel[%d]=%d\n",i,take_relation(&imid_list[1],i));//sto imid_list,prwta apo8ikeueontai ta rowid tou pinaka 1
+
+             print_checksums(array,&tables[0],checksums,number_of_checksums,imid_list,1);
+
              exit(0);
 
 
@@ -756,12 +834,22 @@
        }
 
        take_predicates(predicates, number_of_predicates, query2);  // edw exoume ena pinaka apo ta predicate tou query
+
        strcpy(query2, query);
+       //checksum
+        int number_of_checksums=find_checksum_number(query2);
+        checksum_struct *checksums = malloc(number_of_checksums * sizeof(checksum_struct));
+        strcpy(query2, query);
+
+        take_checksums(checksums,number_of_checksums,query2);//edw exoume to struct me ta checksums
+
+       lets_go_for_predicates(array, &tables[0], relation_number, predicates, number_of_predicates,checksums,number_of_checksums);
 
 
-       lets_go_for_predicates(array, &tables[0], relation_number, predicates, number_of_predicates);
+      //    exit(0);
 
 
+       free(checksums);
        free(predicates);
        free(tables);
    }
