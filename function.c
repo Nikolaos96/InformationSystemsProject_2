@@ -299,7 +299,7 @@
 	 }
      }
 
-     printf("r1 %d\nc1 %lu\ncol %d\ntelestis %d\n value %lu \n", r1, c1, col, telestis, value);
+//     printf("r1 %d\nc1 %lu\ncol %d\ntelestis %d\n value %lu \n", r1, c1, col, telestis, value);
 
      // ara twra mporw na ftiaksw tin sxesi Rr1
      int lines = 0;
@@ -416,23 +416,11 @@
 	 c = predicates[jj].columnB;
      }
 
-     printf("pinakas   %d\nstili   %d\n", r, c);
-
-
      int find_imid_result = 0;
      for(int i = 0 ; i < take_columns(mid_result) ; i++){
 	 if(r == take_relation(mid_result, i))
 	     find_imid_result = i+1;
      }
-
-     printf("Find_imid_result   %d \n", find_imid_result);
-
-
-
-     int x;
-     printf("\nPata ena arithmo kai enter gia na sinexisw \n");
-     scanf("%d", &x);
-
 
 
      if(find_imid_result == 0){
@@ -441,24 +429,19 @@
 	 return;
      }
 
-
-     printf("\nDen mpika pata ena arithmo kai enter gia na sinexisw \n");
-     scanf("%d", &x);
-
-
-
-	 int k;
-         if(find_imid_result == 1)      k = 0;
-         else if(find_imid_result == 2) k = 1;
-	 else 				k = 2;
+     int k;
+     if(find_imid_result == 1)      k = 0;
+     else if(find_imid_result == 2) k = 1;
+     else 			    k = 2;
 
 
-         // prepei na vrw posa diaforetika roid yparxoun ston endiameso
-         uint64_t *aa = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));
-	 if(aa == NULL){
-	     printf("Error malloc a \n");
-	     exit(1);
-	 }
+     // prepei na vrw posa diaforetika roid yparxoun ston endiameso
+     uint64_t *aa = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));
+     if(aa == NULL){
+	 printf("Error malloc a \n");
+	 exit(1);
+     }
+
 
 	 int rep = take_columns(mid_result);
 
@@ -484,7 +467,6 @@
 	     }
 	 }
 
-	 // exoume j-1 diaforetika rowid kai xeroume poia einai apo ton pinaka a
 	 ///////////////////////////////////////////////////////////
          (*Rr1)->num_tuples = j;
          (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
@@ -500,6 +482,8 @@
          }
          ////////////////////////////////////////////////////////////
 
+
+
 	 for(int i = 0 ; i < j ; i++){
 	     (*Rr1)->tuples[i].payload = aa[i];
          }
@@ -507,7 +491,8 @@
 	 // gia kathe roid prepei na paw ston katalilo pinaka kai stili kai na parw to key
 	 for(int i = 0 ; i < (*Rr1)->num_tuples ; i++){
 	     uint64_t rowid = (*Rr1)->tuples[i].payload;
-	     (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid];
+             if(i == 0) printf("------------------------     rowid   %lu \n", rowid);
+	     (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid - 1];	//////////////// sos thelei -1
 	 }
 	 free(aa);
 
@@ -629,16 +614,17 @@
 
 		 recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);	// exoume ena thema edw vazei to apotelesma ston Rr2 enw tha eprepe ston Rr1
 		 recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
+
+
+
 //		 for(int jj=0 ; jj < Rr1->num_tuples ; jj++) printf("%lu   %lu \n", Rr1->tuples[jj].payload, Rr1->tuples[jj].key);
 //		 for(int jj=0 ; jj < Ss1->num_tuples ; jj++) printf("%lu   %lu \n", Ss1->tuples[jj].payload, Ss1->tuples[jj].key);
+//               exit(0);
 
 
-		 // twra akolouthei to join opou ta apotelesmata tha mpoun stin lista gia ta join
+
 		 Sort_Merge_Join(&Rr1, &Ss1, &join_list);
-
-
 		 imid_list[0] = MID_dimiourgia(&imid_list[0], 2, predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1, -1, -1);
-
 
 		 for(int k = 0 ; k < take_crowd_results(&join_list) ; k++){
 		     tuple t = take_row(&join_list, k);
@@ -661,6 +647,8 @@
              //for(int k = 0 ; k < Rr1->num_tuples ; k++) printf("%lu    %lu \n", Rr1->tuples[k].payload, Rr1->tuples[k].key);
 	     make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
 	     //for(int k = 0 ; k < Ss1->num_tuples ; k++) printf("%lu    %lu \n", Ss1->tuples[k].payload, Ss1->tuples[k].key);
+
+
 	     recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
 	     recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
 

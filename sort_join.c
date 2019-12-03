@@ -186,7 +186,7 @@
 	 if((r > (*Rr)->num_tuples-1) || (s > (*Ss)->num_tuples-1)) break;
 
 	 if( (*Rr)->tuples[r].key == (*Ss)->tuples[s].key ){
-		//printf("%lu   %lu \n", (*Rr)->tuples[r].payload, (*Ss)->tuples[s].payload);
+//		printf("%lu   %lu \n", (*Rr)->tuples[r].payload, (*Ss)->tuples[s].payload);
 	     eisagogi_eggrafis(list, (*Rr)->tuples[r].payload, (*Ss)->tuples[s].payload);
 	     s++;
 	 }else{
