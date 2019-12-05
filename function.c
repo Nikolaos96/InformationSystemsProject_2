@@ -211,14 +211,14 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
  void take_predicates(q *predicates, int number_of_predicates, char *query){
      strsep(&query,"|");
      char *preds  = strsep(&query,"|");
-     printf("preds= %s\n\n",preds);
+     //printf("preds= %s\n\n",preds);
 
      for(int i = 0 ; i < number_of_predicates ; i++){
          char *predicate = strsep(&preds, "&");
          char A[100];
          strcpy(A,predicate);
 
-         printf("------------  predicate= %s \n", predicate);
+        // printf("------------  predicate= %s \n", predicate);
 
          if(take_tokens(A) == 1){  // filtro
 
@@ -226,7 +226,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	     uint64_t a3;
 	     char c1, c2;
              sscanf(predicate, "%d %c %d %c %lu", &a1, &c1, &a2, &c2, &a3);
-             printf("%d %c %d %c %lu\n", a1, c1, a2, c2, a3);
+            // printf("%d %c %d %c %lu\n", a1, c1, a2, c2, a3);
 
              predicates[i].flag = false;
 	     predicates[i].join = false;
@@ -243,7 +243,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	     uint64_t a4;
              char c1, c2, c3;
              sscanf(predicate, "%d %c %d %c %d %c %lu", &a1, &c1, &a2, &c2, &a3, &c3, &a4);
-             printf("%d %c %d %c %d %c %lu \n", a1, c1, a2, c2, a3, c3, a4);
+          //   printf("%d %c %d %c %d %c %lu \n", a1, c1, a2, c2, a3, c3, a4);
 
              predicates[i].flag = false;
 	     predicates[i].join = true;
@@ -526,74 +526,91 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
 
- void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list, int rel, int join_stil_A, int join_stil_B){
-     int k;
-     for(int i = 0 ; i < take_columns(&imid_list[0]) ; i++){
-         if(rel == take_relation(&imid_list[0], i)) k = i;	// k einai i stili apo to endiameso pou theloume ta rowid  0 h 1
-     }
+ void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list, int rel,int rel2, int join_stil_A, int join_stil_B){
+     int k=rel,k1,k2;
      // prepei na elegxoyme oxi tin k alla tin alli an einai idia me mia apo tis 2 stiles tou join
-
      int l;
-     if(k == 0) l = 1;
-     else       l = 0;
+     int join,index,val,val2;
+     if(rel2==-1){
+       if(k == 0) l = 1;
+       else       l = 0;
 
-     int join;
-     if(take_relation(&imid_list[0], l) == join_stil_A)
+       if(take_relation(&imid_list[0], l) == join_stil_A)
+           join = 0;	// key
+       else
+           join = 1;	// payload
+
+
+       for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
+         tuple t = take_row(join_list, i);
+          index = l;
+          val = k;
+          for(int j = 0 ; j < take_crowd_results_mid(&imid_list[0]) ; j++){
+              if(join == 0){
+                if( take_rowid(&imid_list[0], index) == t.key){				 //// oxi ena alla lamda
+                    eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], val));
+                    eisagogi_eggrafis_mid(&imid_list[1], t.key);
+                    eisagogi_eggrafis_mid(&imid_list[1], t.payload);
+                 }
+               val += 2;
+               index += 2;								 // oxi ena alla lamda
+             }else{
+                 if( take_rowid(&imid_list[0], index) == t.payload){				 // edw exoume l oxi ena
+                    eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], val)); // edw exoume lamda
+                    eisagogi_eggrafis_mid(&imid_list[1], t.key);			 // edw exoume lamda
+                    eisagogi_eggrafis_mid(&imid_list[1], t.payload);		 	 // edw exoume lamda
+                 }
+                 val +=  2;
+                 index += 2;									 // oxi ena alla lamda
+             }
+          }
+        }
+   }
+   else{
+     k1=rel,k2=rel2;
+     if(k1==0 && k2==1 || k1==1 && k2==0)
+        l=2;
+     else if(k1==0 && k2==2 || k1==2 && k2==0)
+        l=1;
+     else{
+        l=0;
+     }
+     if(take_relation(&imid_list[1], l) == join_stil_A)
          join = 0;	// key
      else
-	 join = 1;	// payload
+         join = 1;	// payload
 
-     printf("to join einai   %d \n", join);
+    for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
+       tuple t = take_row(join_list, i);
+       index = l;
+       val = k1;
+       val2=k2;
+       for(int j = 0 ; j < take_crowd_results_mid(&imid_list[1]) ; j++){
+           if(join == 0){
+             if( take_rowid(&imid_list[1], index) == t.key){
 
-
-     printf("Endiameso stous pinakes %d   %d \n", take_relation(&imid_list[0], 0), take_relation(&imid_list[0], 1));
-     printf("To join exei ginei stous pinakes   %d    %d \n", join_stil_A, join_stil_B);
-
-     printf("Thelw thn stili apo to endiameso   %d \n", k);
-
-     printf("to k einai h stili pou thelw %d   kai o pinakas pou thelw  %d \n", k , take_relation(&imid_list[0], k));
-     printf("to l einai i stili pou sigkrino an isoute me tin stili apo to join  %d kai o pinakas einai %d \n", l, take_relation(&imid_list[0], l));
-
-     //for(int i = 0 ; i < take_columns(&imid_list[1]) ; i++) printf("%d  ", take_relation(&imid_list[1], i));
-
-
-     int index; // einai lamda oxi ena
-     int val;
-     for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
-	 tuple t = take_row(join_list, i);
-         index = l;    //l == 1
-         val = k;      //k == 1
-         for(int j = 0 ; j < take_crowd_results_mid(&imid_list[0]) ; j++){
-             if(join == 0){
-	         if( take_rowid(&imid_list[0], index) == t.key){				 //// oxi ena alla lamda
-		     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], val));
-		     eisagogi_eggrafis_mid(&imid_list[1], t.key);
-	             eisagogi_eggrafis_mid(&imid_list[1], t.payload);
-	         }
-                 val += 2;
-	         index += 2;								 // oxi ena alla lamda
-	    }else{
-	        if( take_rowid(&imid_list[0], index) == t.payload){				 // edw exoume l oxi ena
-                     eisagogi_eggrafis_mid(&imid_list[1], take_rowid(&imid_list[0], val)); // edw exoume lamda
-                     eisagogi_eggrafis_mid(&imid_list[1], t.key);			 // edw exoume lamda
-                     eisagogi_eggrafis_mid(&imid_list[1], t.payload);		 	 // edw exoume lamda
-	        }
-		val +=  2;
-                index += 2;									 // oxi ena alla lamda
-	    }
-	 }
+                 eisagogi_eggrafis_mid(&imid_list[0], take_rowid(&imid_list[1], val));
+                 eisagogi_eggrafis_mid(&imid_list[0], take_rowid(&imid_list[1], val2));
+                 eisagogi_eggrafis_mid(&imid_list[0], t.key);
+                 eisagogi_eggrafis_mid(&imid_list[0], t.payload);
+              }
+            val += 3;
+            val2 += 3;
+            index += 3;
+          }else{
+              if( take_rowid(&imid_list[1], index) == t.payload){
+                 eisagogi_eggrafis_mid(&imid_list[0], take_rowid(&imid_list[1], val));
+                 eisagogi_eggrafis_mid(&imid_list[0], take_rowid(&imid_list[1], val2));
+                 eisagogi_eggrafis_mid(&imid_list[0], t.key);
+                 eisagogi_eggrafis_mid(&imid_list[0], t.payload);
+              }
+              val += 3;
+              val2 += 3;
+              index += 3;
+          }
+       }
      }
-/*
-     int x = 0;
-     for(int i = 0 ; i < take_crowd_results_mid(&imid_list[1]) ; i++){
-         printf("%lu  ", take_rowid(&imid_list[1], x));
-         x++;
-         printf("%lu  ", take_rowid(&imid_list[1], x));
-	 x++;
-	 printf("%lu \n", take_rowid(&imid_list[1], x));
-         x++;
-     }
-*/
+  }
      return;
  }
 
@@ -602,7 +619,6 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
  void print_checksums(main_array **array, int *tables,checksum_struct *checksums,int number_of_checksums,main_pointer *imid_list,int imid_index){
 
-        printf("-----------------------  %d \n", take_crowd_results_mid(&imid_list[imid_index]));
         int rep = take_columns(&imid_list[imid_index]);
         for(int loop=0;loop<number_of_checksums;loop++){//gia ka8e checksum
             uint64_t sum=0;
@@ -621,7 +637,10 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
                 k += rep;
 	        sum += (*array)[tables[checksums[loop].table]].relation_array[(*array)[tables[checksums[loop].table]].index[checksums[loop].row] + row -1];
             }
-            printf("Sum == %lu\n",sum);
+            if(sum==0)
+              printf("NULL ");
+            else
+              printf("%lu",sum);
         }
 
  }
@@ -667,16 +686,8 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 		 recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);	// exoume ena thema edw vazei to apotelesma ston Rr2 enw tha eprepe ston Rr1
 		 recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
-//               printf("11111111111111111111111111111111\n");
-//		 printf("Rr grammes  %lu\nSs grammes  %lu\n", Rr1->num_tuples, Ss1->num_tuples);
-//		 printf("11111111111111111111111111111111\n");
-//		 for(int jj=0 ; jj < Rr1->num_tuples ; jj++) printf("%lu   %lu \n", Rr1->tuples[jj].payload, Rr1->tuples[jj].key);
-//		 for(int jj=0 ; jj < Ss1->num_tuples ; jj++) printf("%lu   %lu \n", Ss1->tuples[jj].payload, Ss1->tuples[jj].key);
-//               exit(0);
 
 		 Sort_Merge_Join(&Rr1, &Ss1, &join_list);
-
-//		 printf("\njoin grammes   %d \n\n", take_crowd_results(&join_list));
 
 
 		 imid_list[0] = MID_dimiourgia(&imid_list[0], 2, predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1, -1, -1);
@@ -693,7 +704,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 		 free(Ss1->tuples);	free(Ss2->tuples);
 	     }
 
-	 }else if(ii == 1){
+	   }else if(ii == 1){
 	     ii++;
 	     join_list = LIST_dimiourgia(&join_list);
 	     // yparxei mia periptsi pou den tin eksetaoyme
@@ -718,13 +729,12 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 	     if(take_relation(&imid_list[0], 0) != predicates[i].relationA && take_relation(&imid_list[0], 0) != predicates[i].relationB){
 	         imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1);
-		 make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0), predicates[i].relationA, predicates[i].relationB);
+		 make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0),-1, predicates[i].relationA, predicates[i].relationB);
 	     }else{
 		imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
-	        make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1), predicates[i].relationA, predicates[i].relationB);
+	        make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1),-1, predicates[i].relationA, predicates[i].relationB);
 	     }
 
-             print_checksums(array,&tables[0],checksums,number_of_checksums,imid_list,1);
 
 	     lista_diagrafi_mid(&imid_list[0]);
 	     imid_list[0] = NULL;
@@ -733,50 +743,56 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
              free(Ss1->tuples);     free(Ss2->tuples);
 	 }else if(ii == 2){
 	     ii++;
-             join_list = LIST_dimiourgia(&join_list);
-             make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
+       join_list = LIST_dimiourgia(&join_list);
+       make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
 	     make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
 	     recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
-             recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
+       recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
 	     Sort_Merge_Join(&Rr1, &Ss1, &join_list);
 
-
 	     if(take_relation(&imid_list[1], 0) != predicates[i].relationA && take_relation(&imid_list[1], 0) != predicates[i].relationB &&
-		 take_relation(&imid_list[1], 1) != predicates[i].relationA && take_relation(&imid_list[1], 1) != predicates[i].relationB){
+		     take_relation(&imid_list[1], 1) != predicates[i].relationA && take_relation(&imid_list[1], 1) != predicates[i].relationB){
 
+            imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 1), take_col(&imid_list[1], 1),
+			      predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
 
-                 imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 1), take_col(&imid_list[1], 1),
-			                       predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
+		        make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 0), take_relation(&imid_list[1], 1), predicates[i].relationA, predicates[i].relationB);
 
-		 make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0), take_relation(&imid_list[1], 1), predicates[i].relationA, predicates[i].relationB);
-
-
-	    }else if(take_relation(&imid_list[1], 0) != predicates[i].relationA && take_relation(&imid_list[1], 0) != predicates[i].relationB &&
+	     }else if(take_relation(&imid_list[1], 0) != predicates[i].relationA && take_relation(&imid_list[1], 0) != predicates[i].relationB &&
 		      take_relation(&imid_list[1], 2) != predicates[i].relationA && take_relation(&imid_list[1], 2) != predicates[i].relationB){
 
 	        imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 2), take_col(&imid_list[1], 2),
-			                      predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
+			    predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
 
-		make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0), take_relation(&imid_list[1], 2), predicates[i].relationA, predicates[i].relationB);
-
+		      make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 0), take_relation(&imid_list[1], 2), predicates[i].relationA, predicates[i].relationB);
 
 	    }else if(take_relation(&imid_list[1], 1) != predicates[i].relationA && take_relation(&imid_list[1], 1) != predicates[i].relationB &&
 		      take_relation(&imid_list[1], 2) != predicates[i].relationA && take_relation(&imid_list[1], 2) != predicates[i].relationB){
 
 	        imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 1), take_col(&imid_list[1], 1), take_relation(&imid_list[1], 2), take_col(&imid_list[1], 2),
-			                      predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
+			    predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
 
-		make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1), take_relation(&imid_list[1], 2), predicates[i].relationA, predicates[i].relationB);
+		      make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 1), take_relation(&imid_list[1], 2), predicates[i].relationA, predicates[i].relationB);
 	    }
 
 
-             lista_diagrafi_mid(&imid_list[1]);
+
+        lista_diagrafi_mid(&imid_list[1]);
 	     imid_list[1] = NULL;
 	     lista_diagrafi(&join_list);
 	     free(Rr1->tuples);     free(Rr2->tuples);
-             free(Ss1->tuples);     free(Ss2->tuples);
+      free(Ss1->tuples);     free(Ss2->tuples);
 	 }
+
+
      }
+     if(ii==1 || ii==3)
+       print_checksums(array,&tables[0],checksums,number_of_checksums,imid_list,0);
+     else
+       print_checksums(array,&tables[0],checksums,number_of_checksums,imid_list,1);
+
+     printf("\n");
+
      delete_Rr_Ss(&Rr1, &Rr2);
      delete_Rr_Ss(&Ss1, &Ss2);
 
