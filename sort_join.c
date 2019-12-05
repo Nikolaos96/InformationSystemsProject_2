@@ -183,10 +183,10 @@
 	     mark = s;
 	 }
 
-	 if((r > (*Rr)->num_tuples-1) || (s > (*Ss)->num_tuples-1)) break;
+	 if((r > (*Rr)->num_tuples) || (s > (*Ss)->num_tuples)) break;
 
 	 if( (*Rr)->tuples[r].key == (*Ss)->tuples[s].key ){
-//		printf("%lu   %lu \n", (*Rr)->tuples[r].payload, (*Ss)->tuples[s].payload);
+             //printf("%lu  -  %lu \n", (*Rr)->tuples[r].payload, (*Ss)->tuples[s].payload);
 	     eisagogi_eggrafis(list, (*Rr)->tuples[r].payload, (*Ss)->tuples[s].payload);
 	     s++;
 	 }else{
@@ -194,7 +194,18 @@
 	     r++;
 	     mark = -1;
 	 }
-     }while( (r < (*Rr)->num_tuples) && (s < (*Ss)->num_tuples) );
+     }while( (r < (*Rr)->num_tuples + 1) && (s < (*Ss)->num_tuples + 1) );
 
+
+
+/*
+     for(int i = 0 ; i < (*Rr)->num_tuples ; i++){
+         for(int j = 0 ; j < (*Ss)->num_tuples ; j++){
+             if((*Rr)->tuples[i].key == (*Ss)->tuples[j].key){
+	         eisagogi_eggrafis(list, (*Rr)->tuples[i].payload, (*Ss)->tuples[j].payload);
+	     }
+	 }
+     }
+*/
      return;
  }
