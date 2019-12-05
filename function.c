@@ -640,7 +640,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
             if(sum==0)
               printf("NULL ");
             else
-              printf("%lu",sum);
+              printf("%lu ",sum);
         }
 
  }
