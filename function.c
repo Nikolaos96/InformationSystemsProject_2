@@ -819,6 +819,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
  void read_queries(char *query_file,main_array **array,int relation_number){
    char *query, query2[100];
    size_t len = 0;
+   clock_t time;
 
    FILE *f=fopen(query_file,"r");
    if(f==NULL){
@@ -862,10 +863,10 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
         strcpy(query2, query);
 
         take_checksums(checksums,number_of_checksums,query2);//edw exoume to struct me ta checksums
-
-       lets_go_for_predicates(array, &tables[0], relation_number, predicates, number_of_predicates,checksums,number_of_checksums);
-
-
+        time = clock();
+        lets_go_for_predicates(array, &tables[0], relation_number, predicates, number_of_predicates,checksums,number_of_checksums);
+        time = clock() - time;
+        printf("Cpu time for query is  %lf  seconds. \n\n", ((double)time) / CLOCKS_PER_SEC);
       //    exit(0);
 
 
