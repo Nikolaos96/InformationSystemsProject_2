@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include "structs.h"
 #include "mid_list.h"
 #include "join_list.h"
@@ -30,6 +31,8 @@ void make_Rr1_Rr2__2(main_array **array, main_pointer *mid_result, int *tables, 
 
 void  make_second_intermid(info_deikti *join_list, main_pointer *imid_list, int size_imid_list, int rel,int rel2, int join_stil_A, int join_stil_B);
 void print_checksums(main_array **array, int *tables,checksum_struct *checksums,int number_of_checksums,main_pointer *imid_list,int imid_index);
+
+void edit_itermid(main_array **array, int *tables, main_pointer *imid_list, main_pointer *imid_list2, int relA, int colA, int relB, uint64_t colB, int ii);
 
 void lets_go_for_predicates(main_array **array, int *tables, int relation_number, q *predicates, int number_of_predicates,checksum_struct *checksums,int number_of_checksums);
 void read_queries(char *query_file,main_array **array,int relation_number);

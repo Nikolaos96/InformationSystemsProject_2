@@ -207,8 +207,6 @@
 */
 
 
-
-
  void lista_diagrafi_mid(main_pointer *linfo){
 	int i;
 
