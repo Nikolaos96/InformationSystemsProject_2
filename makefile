@@ -21,3 +21,6 @@ clean:
 
 run:
 	./main -D files -F small.init -Q files/small.work
+
+run2:
+	./main -D /tmp/workloads/medium/ -F /tmp/workloads/medium/medium.init -Q /tmp/workloads/medium/medium.work
