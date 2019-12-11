@@ -69,8 +69,10 @@
  /*
   part of quicksort
  */
+ /*
  int partition (relation **Rr, int low, int high) {
 	uint64_t pivot = (*Rr)->tuples[high].key;
+//	uint64_t pivot = (*Rr)->tuples[(low+high)/2].key;
 	int i = (low - 1);
         uint64_t tempKey;
         uint64_t tempPayload;
@@ -95,13 +97,40 @@
 	(*Rr)->tuples[high].payload = tempPayload;
 	return (i + 1);
  }
+ */
+ int partition(relation **Rr, int lo, int hi) {
+     uint64_t pivot = (*Rr)->tuples[lo + (hi - lo) / 2].key;
+     int i = lo - 1;
+     int j = hi + 1;
 
+     uint64_t tempKey;
+     uint64_t tempPayload;
 
+     while(1){
+         do{
+             i += 1;
+	 }while((*Rr)->tuples[i].key < pivot);
+         do{
+             j -= 1;
+	 }while((*Rr)->tuples[j].key > pivot);
+
+  	 if( i >= j) return j;
+
+	 tempKey = (*Rr)->tuples[i].key;
+	 (*Rr)->tuples[i].key = (*Rr)->tuples[j].key;
+	 (*Rr)->tuples[j].key = tempKey;
+
+	 tempPayload = (*Rr)->tuples[i].payload;
+	 (*Rr)->tuples[i].payload = (*Rr)->tuples[j].payload;
+	 (*Rr)->tuples[j].payload = tempPayload;
+     }
+ }
 
 
  /*
   quicksort
  */
+ /*
  void quickSort(relation **Rr, int low, int high) {
 	if (low < high) {
 		int pi = partition(Rr, low, high);
@@ -109,7 +138,15 @@
 		quickSort(Rr, pi + 1, high);
 	}
  }
+ */
 
+ void quickSort(relation **Rr, int low, int high) {
+    if(low < high){
+        int pi = partition(Rr, low, high);
+	quickSort(Rr, low, pi);
+	quickSort(Rr, pi+1, high);
+    }
+ }
 
 
 
@@ -208,4 +245,37 @@
      }
 */
      return;
+ }
+
+
+
+
+
+ int partition2(uint64_t *A, int lo, int hi){
+     uint64_t pivot = A[lo + (hi - lo) / 2];
+     int i = lo - 1;
+     int j = hi + 1;
+
+     while(1){
+         do{
+             i  = i + 1;
+         }while(A[i] < pivot);
+         do{
+             j = j - 1;
+         }while(A[j] > pivot);
+
+         if( i >= j ) return j;
+
+         uint64_t temp = A[i];
+         A[i] = A[j];
+         A[j] = temp;
+     }
+ }
+
+ void quicksort2(uint64_t *A, int low, int high){
+     if(low < high){
+         int p = partition2(A, low, high);
+         quicksort2(A, low, p);
+         quicksort2(A, p+1, high);
+     }
  }

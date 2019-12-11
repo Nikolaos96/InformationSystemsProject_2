@@ -63,7 +63,7 @@
   function to read all the files and save to memory
  */
  int create_init_relations(char *directory, char *workload_file, main_array **array){
-   char init_file[100];
+   char init_file[150];
    char r[10];
    strcpy(init_file,directory);
    strcat(init_file,"/");
@@ -81,7 +81,7 @@
    for(int i=0 ; i < relation_number ; i++){
        fscanf(f,"%s[^\n]",r);
 
-       char file[100];
+       char file[150];
        strcpy(file,directory);
        strcat(file,"/");
        strcat(file,r);
@@ -426,9 +426,9 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
 
- void make_Rr1_Rr2__2(main_array **array, main_pointer *mid_result, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a,int *sort_needed){
+ void make_Rr1_Rr2__2(main_array **array, main_pointer *mid_result, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a){
      int r, c;
-     *sort_needed=1;
+
      if(a == 1){
          r = predicates[jj].relationA;
 	 c = predicates[jj].columnA;
@@ -439,11 +439,8 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
      int find_imid_result = 0;
      for(int i = 0 ; i < take_columns(mid_result) ; i++){
-	      if(r == take_relation(mid_result, i)){
-	         find_imid_result = i+1;
-           if(c == take_col(mid_result,i))
-            *sort_needed=0;
-        }
+	 if(r == take_relation(mid_result, i))
+	     find_imid_result = i+1;
      }
 
 
@@ -453,69 +450,137 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	 return;
      }
 
+
+
      int k;
      if(find_imid_result == 1)      k = 0;
      else if(find_imid_result == 2) k = 1;
-     else 			    k = 2;
+     else                           k = 2;
+
+
+
+     ///////////////////////////////////////////////////////////////////////////////////////////////////
+     // periptwsi opou pairnoume akrivos mia stili apo to endiameso
+
+     // if(){
+
+         // se periptwsi pou thelw akrivos mia stili kai pinaka apo to endiameso
+         // ftiaxnw tin sxesi Rr h opoia ta rowId  einai akribos mia apo tis stiles tou endiamesou kai pairnw kai ta key tis analogis stilis
+
+     /*
+         int rep = take_columns(mid_result);
+         (*Rr1)->num_tuples = take_crowd_results_mid(mid_result);
+         (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
+         if((*Rr1)->tuples == NULL){
+             printf("Error malloc (*Rr1)->tuples \n");
+             exit(1);
+         }
+
+         for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
+             (*Rr1)->tuples[i].payload =  take_rowid(mid_result, k);
+
+             // an vgaleis ta sxolia apo tin apo katw entoli mallon to apo katw for den xreiazetai
+             //(*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + (*Rr1)->tuples[i].payload - 1];
+
+             k += rep;
+         }
+
+         for(int i = 0 ; i < (*Rr1)->num_tuples ; i++){
+             uint64_t rowid = (*Rr1)->tuples[i].payload;
+             (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid - 1];      //////////////// sos thelei -1
+         }
+    */
+
+     // }else{		// edw imaste sti periptesi opou theloume mia sxesi apo to endiameso alla diaforetiki stili
+
 
      // prepei na vrw posa diaforetika roid yparxoun ston endiameso
-          uint64_t *aa = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));
-          if(aa == NULL){
-     	      printf("Error malloc a \n");
-     	      exit(1);
-          }
+     uint64_t *aa = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));
+     uint64_t *bb = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));
+
+     if(aa == NULL){
+	 printf("Error malloc a \n");
+	 exit(1);
+     }
+/////////////////////////////////////////////////////////////////////////////////
+     // neos tropos gia na min pairnoume ta diplotipa
+
+     int rep = take_columns(mid_result);
+     for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
+         bb[i] = take_rowid(mid_result, k);
+         k += rep;
+     }
+     quicksort2(bb, 0, take_crowd_results_mid(mid_result) - 1);	/////
+
+     int j = 0;
+     for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
+         if(i == 0){
+	     aa[j] = bb[i];
+	     j++;
+	 }else{
+	     if(bb[i] != aa[j-1]){
+	        aa[j] = bb[i];
+	        j++;
+	     }
+	 }
+     }
 
 
-     	 int rep = take_columns(mid_result);
+     // palios tropos gia na min pairnoume ta diplotipa
+     /*
+	 int rep = take_columns(mid_result);
 
-     	 int j = 0;
-       for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
-     	     uint64_t row = take_rowid(mid_result, k);
-     	     k += rep;
-     	     if(i == 0){
-     		      aa[j] = row;
-     		      j++;
-     	     }else{
-     		      int find = 0;
-     	         for(int l = 0 ; l < j ; l++){
-     		          if(aa[l] == row){
-     		             find = 1;
-     			           break;
-     		          }
-     		       }
-     		       if(find == 0){
-     		          aa[j] = row;
-     		          j++;
-     		       }
-     	      }
-     	 }
-     	 ///////////////////////////////////////////////////////////
-              (*Rr1)->num_tuples = j;
-              (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
-              if((*Rr1)->tuples == NULL){
-     	          printf("Error malloc (*Rr1)->tuples \n");
-     	          exit(1);
-              }
-              (*Rr2)->num_tuples = j;
-              (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
-              if((*Rr2)->tuples == NULL){
-                  printf("Error malloc (*Rr2)->tuples \n");
-                  exit(1);
-              }
-              ////////////////////////////////////////////////////////////
+	 int j = 0;
+         for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
+	     uint64_t row = take_rowid(mid_result, k);
+	     k += rep;
 
-     	 for(int i = 0 ; i < j ; i++){
-     	     (*Rr1)->tuples[i].payload = aa[i];
-       }
+	     if(i == 0){
+		 aa[j] = row;
+		 j++;
+	     }else{
+		 int find = 0;
+	         for(int l = 0 ; l < j ; l++){
+		     if(aa[l] == row){
+		         find = 1;
+			 break;
+		     }
+		 }
+		 if(find == 0){
+		     aa[j] = row;
+		     j++;
+		 }
+	     }
 
-     	 // gia kathe roid prepei na paw ston katalilo pinaka kai stili kai na parw to key
-     	 for(int i = 0 ; i < (*Rr1)->num_tuples ; i++){
-     	     uint64_t rowid = (*Rr1)->tuples[i].payload;
-     	     (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid - 1];	//////////////// sos thelei -1
-     	 }
-     	 free(aa);
+	 }
+      */
+	 ///////////////////////////////////////////////////////////
+         (*Rr1)->num_tuples = j;
+         (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
+         if((*Rr1)->tuples == NULL){
+	     printf("Error malloc (*Rr1)->tuples \n");
+	     exit(1);
+         }
+         (*Rr2)->num_tuples = j;
+         (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
+         if((*Rr2)->tuples == NULL){
+             printf("Error malloc (*Rr2)->tuples \n");
+             exit(1);
+         }
+         ////////////////////////////////////////////////////////////
 
 
+	 for(int i = 0 ; i < j ; i++){
+	     (*Rr1)->tuples[i].payload = aa[i];
+         }
+	 // gia kathe roid prepei na paw ston katalilo pinaka kai stili kai na parw to key
+	 for(int i = 0 ; i < (*Rr1)->num_tuples ; i++){
+	     uint64_t rowid = (*Rr1)->tuples[i].payload;
+	     (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid - 1];	//////////////// sos thelei -1
+	 }
+	 free(aa);
+         free(bb);
+     return;
  }
 
 
@@ -667,12 +732,12 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
   if(ii == 1){
      if(relA != take_relation(&imid_list[0], 0)){
          uint64_t temp = relA;
-      	 relA = relB;
-      	 relB = temp;
+	 relA = relB;
+	 relB = temp;
 
-       	 temp = colA;
-      	 colA = colB;
-      	 colB = temp;
+ 	 temp = colA;
+	 colA = colB;
+	 colB = temp;
      }
 
      imid_list[1] = MID_dimiourgia(&imid_list[1], 2, take_relation(&imid_list[0], 0), take_col(&imid_list[0], 0), take_relation(&imid_list[0], 1), take_col(&imid_list[0], 1), -1, -1, -1, -1);
@@ -694,7 +759,8 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
      }
      lista_diagrafi_mid(&imid_list[0]);
 
-////////////
+/////////////
+
      imid_list[0] = MID_dimiourgia(&imid_list[0], 2, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 1), take_col(&imid_list[1],1), -1, -1, -1, -1);
 
      k = 0;
@@ -707,33 +773,25 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
          k += 2;
      }
      lista_diagrafi_mid(&imid_list[1]);
-///////////////
+
 
   }else{
-//	printf("000000000000000000000000000000000000000000000000000000000\n");
 
       int x, y;
       for(int i = 0 ; i < take_columns(&imid_list[0]) ; i++){
 	  if(take_relation(&imid_list[0], i) == relA) x = i;
       }
-//      printf("x is %d \n\n", x);
 
       for(int i = 0 ; i < take_columns(&imid_list[0]) ; i++){
           if(take_relation(&imid_list[0], i) == relB) y = i;
       }
-//       printf("111111111111111111111111111111 \n");
 
       imid_list2[0] = MID_dimiourgia(&imid_list2[0], 3, take_relation(&imid_list[0], 0), take_col(&imid_list[0], 0), take_relation(&imid_list[0], 1), take_col(&imid_list[0], 1), take_relation(&imid_list[0], 2), take_col(&imid_list[0], 2), -1, -1);
 
       int k = 0, row1, row2, row3;
 
-
-//      printf("2222222222222222222222222222222 \n");
-//      printf("x is %d    y is  %d \n", x, y);
-//      printf("relA   %d  \nrelB  %d\n", relA, relB);
-
         //
-	// exoume ena the ma edw me tiw listes
+	// exoume ena the ma edw me tiw lista
 
       for(int i = 0 ; i < take_crowd_results_mid(imid_list) ; i++){
           row1 = take_rowid(imid_list, k);
@@ -795,12 +853,11 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
           k += 3;
       }
 
-//      printf("\n22222222222222222222222222222 \n");
-
 
 
       lista_diagrafi_mid(imid_list);
       imid_list[0] = MID_dimiourgia(imid_list, 3, take_relation(imid_list2, 0), take_col(imid_list2, 0), take_relation(imid_list2, 1), take_col(imid_list2, 1), take_relation(imid_list2, 2), take_col(imid_list2, 2), -1, -1);
+
 
       k = 0;
       for(int i = 0 ; i < take_crowd_results_mid(imid_list2) ; i++){
@@ -815,7 +872,6 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	  k += 3;
       }
 
-
       lista_diagrafi_mid(imid_list2);
   }
 
@@ -827,7 +883,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
  void lets_go_for_predicates(main_array **array, int *tables, int relation_number, q *predicates, int number_of_predicates,checksum_struct *checksums,int number_of_checksums){
-     int i, ii = 0,sort_needed=0;
+     int i, ii = 0;
      relation *Rr1, *Rr2;
      relation *Ss1, *Ss2;
 
@@ -850,31 +906,34 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
      for(i = 0 ; i < number_of_predicates ; i++){
          if(predicates[i].join == false) continue; 	// trexoume to for mono gia ta join predicate
 
-	    if(ii == 0){
+	 if(ii == 0){
 	     ii++;
 	     if(predicates[i].relationA == predicates[i].relationB){
-    		 printf("Self join \n");
-    		 //
-    	 	 //
+		 printf("Self join \n");
+		 //
+	 	 //
 	     }else{
 		 join_list = LIST_dimiourgia(&join_list);
 
 		 make_Rr1_Rr2(array, tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
 		 make_Rr1_Rr2(array, tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
 
-		 recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);	// exoume ena thema edw vazei to apotelesma ston Rr2 enw tha eprepe ston Rr1
+		 recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
 		 recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
 
 		 Sort_Merge_Join(&Rr1, &Ss1, &join_list);
 
-
 		 imid_list[0] = MID_dimiourgia(&imid_list[0], 2, predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1, -1, -1);
 
 
-		 for(int k = 0 ; k < take_crowd_results(&join_list) ; k++){
-		     tuple t = take_row(&join_list, k);
+		 // vazoume orisma stin sinartisi kai tin lista me ta endiamesa kai enan akeraio gia na xerei h sort_merge an thakanei eisagwgi stin lista
+		 // me ta endiamesa stin lista me ta join
+		 //Sort_Merge_Join(&Rr1, &Ss1, &join_list, &imid_list[0], 1);
 
-//		     printf("%lu  %lu \n", t.key, t.payload);
+
+
+		 for(int k = 0 ; k < take_crowd_results(&join_list) ; k++){		// na fygei ayto kai kanoume kateuthia eisagwgi sto endiameso
+		     tuple t = take_row(&join_list, k);
 
 		     eisagogi_eggrafis_mid(&imid_list[0], t.key);
 		     eisagogi_eggrafis_mid(&imid_list[0], t.payload);
@@ -886,21 +945,22 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	     }
 
 	   }else if(ii == 1){
-        if((predicates[i].relationA == take_relation(&imid_list[0], 0) && predicates[i].relationB == take_relation(&imid_list[0], 1)) ||
-		      ((predicates[i].relationA == take_relation(&imid_list[0], 1) && predicates[i].relationB == take_relation(&imid_list[0], 0)))){
+               if((predicates[i].relationA == take_relation(&imid_list[0], 0) && predicates[i].relationB == take_relation(&imid_list[0], 1)) ||
+		  ((predicates[i].relationA == take_relation(&imid_list[0], 1) && predicates[i].relationB == take_relation(&imid_list[0], 0)))){
 
 	           edit_itermid(array, tables, &imid_list[0], &imid_list[1], predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, ii);
 	       }else{
 
 	           ii++;
 	           join_list = LIST_dimiourgia(&join_list);
-	     	   make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1,&sort_needed);
-           if(sort_needed)
-             recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
-	     	   make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2,&sort_needed);
-           if(sort_needed)
-	     	     recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
+	     	   make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
+	     	   make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
 
+		   // kanoume sort stin periptwsi opou exoume kopsei diplotipa apo tin sxesi
+                   // kai edw thelei if
+
+	     	   recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7); // den tha xreiazetai an ginei auto pou lew
+	     	   recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
 	     	   Sort_Merge_Join(&Rr1, &Ss1, &join_list);
 
 
@@ -912,7 +972,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	               imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
 	               make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1), -1, predicates[i].relationA, predicates[i].relationB);
 	     	   }
-//		   printf("3 stiles endiameso  %d  %d  %d \n", take_relation(&imid_list[1], 0), take_relation(&imid_list[1], 1), take_relation(&imid_list[1], 2));
+
 
 
 	     	   lista_diagrafi_mid(&imid_list[0]);
@@ -929,17 +989,11 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	     }else{
 	         ii++;
        	         join_list = LIST_dimiourgia(&join_list);
-       	         make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1,&sort_needed);
-                 if(sort_needed)
-                  recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
-
-	               make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2,&sort_needed);
-                 if(sort_needed)
-                  recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
-
-	               Sort_Merge_Join(&Rr1, &Ss1, &join_list);
-
-
+       	         make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
+	         make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
+	         recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
+                 recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
+	         Sort_Merge_Join(&Rr1, &Ss1, &join_list);
 
 
 	         if(take_relation(&imid_list[1], 0) != predicates[i].relationA && take_relation(&imid_list[1], 0) != predicates[i].relationB &&
@@ -967,17 +1021,6 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	 	     make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 1), take_relation(&imid_list[1], 2), predicates[i].relationA, predicates[i].relationB);
 	         }
 
-
-
-/*
-
-		 int kkk = 0;
-                   for(int iii = 0 ; iii < take_crowd_results_mid(&imid_list[0]) ; iii++){
-                       printf("%lu  %lu  %lu %lu \n", take_rowid(&imid_list[0], kkk), take_rowid(&imid_list[0], kkk+1), take_rowid(&imid_list[0], kkk+2), take_rowid(&imid_list[0], kkk+3));
-
-                      kkk += 4;
-                   }
-*/
 
                  lista_diagrafi_mid(&imid_list[1]);
 	         imid_list[1] = NULL;
@@ -1026,19 +1069,13 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
        printf("error in opening query_file\n");
        exit(1);
    }
-////////////////////////
-   int xx = 0;
-////////////////////////
+
+
    while(getline(&query,&len,f)!= -1){
-	xx++;	//////////
         if(!strcmp(query,"F\n")){
             printf("\nEnd of batch.\n\n");
             continue;
         }
-
-
-
-//        if(xx != 42) continue;
 
 
 

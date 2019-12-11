@@ -20,4 +20,8 @@ void recurseFunc(relation **Rr_1, relation **Rr_2, int start, int end, int byteP
 
 void Sort_Merge_Join(relation **Rr, relation **Ss, info_deikti *list);
 
+
+int partition2(uint64_t *A, int lo, int hi);
+void quicksort2(uint64_t *A, int low, int high);
+
 #endif
