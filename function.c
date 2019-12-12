@@ -426,9 +426,9 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
 
- void make_Rr1_Rr2__2(main_array **array, main_pointer *mid_result, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a){
-     int r, c;
-
+ void make_Rr1_Rr2__2(main_array **array, main_pointer *mid_result, int *tables, q *predicates, int number_of_predicates, int jj, relation **Rr1, relation **Rr2, int a,int *sort_needed){
+     int r, c,sort=1;
+     *sort_needed=1;
      if(a == 1){
          r = predicates[jj].relationA;
 	 c = predicates[jj].columnA;
@@ -439,18 +439,21 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
      int find_imid_result = 0;
      for(int i = 0 ; i < take_columns(mid_result) ; i++){
-	 if(r == take_relation(mid_result, i))
-	     find_imid_result = i+1;
+	     if(r == take_relation(mid_result, i)){
+	        find_imid_result = i+1;
+          if(c == take_col(mid_result,i)){
+             sort=0;
+             *sort_needed=0;
+           }
+        }
      }
 
 
      if(find_imid_result == 0){
          // kalese tin proigoumeni make rr1 rr2
-         make_Rr1_Rr2(array, tables, predicates, number_of_predicates, jj, Rr1, Rr2, a);
-	 return;
+       make_Rr1_Rr2(array, tables, predicates, number_of_predicates, jj, Rr1, Rr2, a);
+	     return;
      }
-
-
 
      int k;
      if(find_imid_result == 1)      k = 0;
@@ -458,14 +461,31 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
      else                           k = 2;
 
 
-
      ///////////////////////////////////////////////////////////////////////////////////////////////////
-     // periptwsi opou pairnoume akrivos mia stili apo to endiameso
-
-     // if(){
-
-         // se periptwsi pou thelw akrivos mia stili kai pinaka apo to endiameso
-         // ftiaxnw tin sxesi Rr h opoia ta rowId  einai akribos mia apo tis stiles tou endiamesou kai pairnw kai ta key tis analogis stilis
+     // se periptwsi pou thelw akrivos mia stili kai pinaka apo to endiameso
+     // ftiaxnw tin sxesi Rr h opoia ta rowId  einai akribos mia apo tis stiles tou endiamesou kai pairnw kai ta key tis analogis stilis
+      int rep = take_columns(mid_result);
+      if(*sort_needed==0){ //ama exoume tin stili tou pinaka ston endiameso
+        (*Rr1)->num_tuples = take_crowd_results_mid(mid_result);
+        (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
+        if((*Rr1)->tuples == NULL){
+          printf("Error malloc (*Rr1)->tuples \n");
+          exit(1);
+        }
+        (*Rr2)->num_tuples = take_crowd_results_mid(mid_result);
+        (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
+        if((*Rr2)->tuples == NULL){
+            printf("Error malloc (*Rr2)->tuples \n");
+            exit(1);
+        }
+        for(int i=0;i<(*Rr1)->num_tuples;i++){
+          (*Rr1)->tuples[i].payload =  take_rowid(mid_result, k);
+          uint64_t rowid = (*Rr1)->tuples[i].payload;
+          (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid - 1];
+          k+=rep;
+        }
+        return;
+      }
 
      /*
          int rep = take_columns(mid_result);
@@ -505,7 +525,6 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 /////////////////////////////////////////////////////////////////////////////////
      // neos tropos gia na min pairnoume ta diplotipa
 
-     int rep = take_columns(mid_result);
      for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
          bb[i] = take_rowid(mid_result, k);
          k += rep;
@@ -883,7 +902,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
  void lets_go_for_predicates(main_array **array, int *tables, int relation_number, q *predicates, int number_of_predicates,checksum_struct *checksums,int number_of_checksums){
-     int i, ii = 0;
+     int i, ii = 0,sort_needed=0,flag=0;
      relation *Rr1, *Rr2;
      relation *Ss1, *Ss2;
 
@@ -904,6 +923,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
      for(i = 0 ; i < number_of_predicates ; i++){
+       flag=0;
          if(predicates[i].join == false) continue; 	// trexoume to for mono gia ta join predicate
 
 	 if(ii == 0){
@@ -913,7 +933,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 		 //
 	 	 //
 	     }else{
-		 join_list = LIST_dimiourgia(&join_list);
+		// join_list = LIST_dimiourgia(&join_list);
 
 		 make_Rr1_Rr2(array, tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
 		 make_Rr1_Rr2(array, tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
@@ -921,30 +941,26 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 		 recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
 		 recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
 
-		 Sort_Merge_Join(&Rr1, &Ss1, &join_list);
-
-		 imid_list[0] = MID_dimiourgia(&imid_list[0], 2, predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1, -1, -1);
-
+     imid_list[0] = MID_dimiourgia(&imid_list[0], 2, predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1, -1, -1);
 
 		 // vazoume orisma stin sinartisi kai tin lista me ta endiamesa kai enan akeraio gia na xerei h sort_merge an thakanei eisagwgi stin lista
 		 // me ta endiamesa stin lista me ta join
-		 //Sort_Merge_Join(&Rr1, &Ss1, &join_list, &imid_list[0], 1);
+     Sort_Merge_Join(&Rr1, &Ss1, &join_list,&imid_list[0],&imid_list[1],1,0);
 
-
-
-		 for(int k = 0 ; k < take_crowd_results(&join_list) ; k++){		// na fygei ayto kai kanoume kateuthia eisagwgi sto endiameso
+		/* for(int k = 0 ; k < take_crowd_results(&join_list) ; k++){		// na fygei ayto kai kanoume kateuthia eisagwgi sto endiameso
 		     tuple t = take_row(&join_list, k);
 
 		     eisagogi_eggrafis_mid(&imid_list[0], t.key);
 		     eisagogi_eggrafis_mid(&imid_list[0], t.payload);
 		 }
-
-		 lista_diagrafi(&join_list);	// diagrafw tin lista me to join - tha prepei na dimioyrgithei ksana gia ii == 2 kai ii == 3
+     */
+	//	 lista_diagrafi(&join_list);	// diagrafw tin lista me to join - tha prepei na dimioyrgithei ksana gia ii == 2 kai ii == 3
 		 free(Rr1->tuples);	free(Rr2->tuples);
 		 free(Ss1->tuples);	free(Ss2->tuples);
 	     }
 
 	   }else if(ii == 1){
+
                if((predicates[i].relationA == take_relation(&imid_list[0], 0) && predicates[i].relationB == take_relation(&imid_list[0], 1)) ||
 		  ((predicates[i].relationA == take_relation(&imid_list[0], 1) && predicates[i].relationB == take_relation(&imid_list[0], 0)))){
 
@@ -953,25 +969,37 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 	           ii++;
 	           join_list = LIST_dimiourgia(&join_list);
-	     	   make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
-	     	   make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
 
 		   // kanoume sort stin periptwsi opou exoume kopsei diplotipa apo tin sxesi
                    // kai edw thelei if
+         make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1,&sort_needed);
+         if(sort_needed)
+           recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
+        else
+          flag=1;//o R pairnetai apo ton endiameso etoimos
 
-	     	   recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7); // den tha xreiazetai an ginei auto pou lew
-	     	   recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
-	     	   Sort_Merge_Join(&Rr1, &Ss1, &join_list);
 
+     	   make_Rr1_Rr2__2(array, &imid_list[0], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2,&sort_needed);
+         if(sort_needed)
+     	     recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
+          else
+           flag=2;//o S pairnetai apo ton endiameso etoimos
 
+          if(flag==1)
+            imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationB, predicates[i].columnB, -1, -1);
+          if(flag==2)
+            imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, -1, -1);
 
-	     	   if(take_relation(&imid_list[0], 0) != predicates[i].relationA && take_relation(&imid_list[0], 0) != predicates[i].relationB){
-	               imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1);
-		       make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0), -1, predicates[i].relationA, predicates[i].relationB);
-	     	   }else{
-	               imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
-	               make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1), -1, predicates[i].relationA, predicates[i].relationB);
-	     	   }
+           Sort_Merge_Join(&Rr1, &Ss1, &join_list,&imid_list[0],&imid_list[1],0,flag);
+           if(flag==0){//an flag=0 kanoume to klassiko
+    	     	   if(take_relation(&imid_list[0], 0) != predicates[i].relationA && take_relation(&imid_list[0], 0) != predicates[i].relationB){
+    	               imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 0), take_col(imid_list, 0), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, -1, -1);
+    		       make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 0), -1, predicates[i].relationA, predicates[i].relationB);
+    	     	   }else{
+    	               imid_list[1] = MID_dimiourgia(&imid_list[1], 3, take_relation(imid_list, 1), take_col(imid_list, 1), predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB,-1, -1);
+    	               make_second_intermid(&join_list, imid_list, 2, take_relation(imid_list, 1), -1, predicates[i].relationA, predicates[i].relationB);
+    	     	   }
+           }
 
 
 
@@ -982,51 +1010,67 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
              	   free(Ss1->tuples);     free(Ss2->tuples);
 	     }
 	 }else if(ii == 2){
+    
 	     if( (predicates[i].relationA == take_relation(&imid_list[1], 0) || predicates[i].relationA == take_relation(&imid_list[1], 1) || predicates[i].relationA == take_relation(&imid_list[1], 2)) &&
 		  (predicates[i].relationB == take_relation(&imid_list[1], 0) || predicates[i].relationB == take_relation(&imid_list[1], 1) || predicates[i].relationB == take_relation(&imid_list[1], 2)) ){
 	         edit_itermid(array, tables, &imid_list[1], &imid_list[0], predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB, ii);
 
 	     }else{
+
 	         ii++;
-       	         join_list = LIST_dimiourgia(&join_list);
-       	         make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1);
-	         make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2);
-	         recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
-                 recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
-	         Sort_Merge_Join(&Rr1, &Ss1, &join_list);
+       	   join_list = LIST_dimiourgia(&join_list);
+       	   make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Rr1, &Rr2, 1,&sort_needed);
+           if(sort_needed)
+	          recurseFunc(&Rr1, &Rr2, 0, Rr1->num_tuples, 7);
+          else flag=1;
+
+           make_Rr1_Rr2__2(array, &imid_list[1], tables, predicates, number_of_predicates, i, &Ss1, &Ss2, 2,&sort_needed);
+           if(sort_needed)
+            recurseFunc(&Ss1, &Ss2, 0, Ss1->num_tuples, 7);
+            else flag=2;
+
+            if(flag==1)
+              imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 1), take_col(&imid_list[1], 1),take_relation(&imid_list[1], 2), take_col(&imid_list[1], 2), predicates[i].relationB, predicates[i].columnB);
+            if(flag==2)
+            imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 1), take_col(&imid_list[1], 1),take_relation(&imid_list[1], 2), take_col(&imid_list[1], 2), predicates[i].relationA, predicates[i].columnA);
+
+	         Sort_Merge_Join(&Rr1, &Ss1, &join_list,&imid_list[1],&imid_list[0],0,flag);
+
+           if(flag==0){
+
+    	         if(take_relation(&imid_list[1], 0) != predicates[i].relationA && take_relation(&imid_list[1], 0) != predicates[i].relationB &&
+    		       take_relation(&imid_list[1], 1) != predicates[i].relationA && take_relation(&imid_list[1], 1) != predicates[i].relationB){
+
+                 imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 1), take_col(&imid_list[1], 1),
+    		   	     predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
+
+    		         make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 0), take_relation(&imid_list[1], 1), predicates[i].relationA, predicates[i].relationB);
+
+      	       }else if(take_relation(&imid_list[1], 0) != predicates[i].relationA && take_relation(&imid_list[1], 0) != predicates[i].relationB &&
+    		       take_relation(&imid_list[1], 2) != predicates[i].relationA && take_relation(&imid_list[1], 2) != predicates[i].relationB){
+
+    	            imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 2), take_col(&imid_list[1], 2),
+    			        predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
+
+    		          make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 0), take_relation(&imid_list[1], 2), predicates[i].relationA, predicates[i].relationB);
+
+    	         }else if(take_relation(&imid_list[1], 1) != predicates[i].relationA && take_relation(&imid_list[1], 1) != predicates[i].relationB &&
+    		        take_relation(&imid_list[1], 2) != predicates[i].relationA && take_relation(&imid_list[1], 2) != predicates[i].relationB){
+
+    	             imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 1), take_col(&imid_list[1], 1), take_relation(&imid_list[1], 2), take_col(&imid_list[1], 2),
+   	               predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
+//edw argei
+    	 	           make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 1), take_relation(&imid_list[1], 2), predicates[i].relationA, predicates[i].relationB);
+
+               }
+         }
 
 
-	         if(take_relation(&imid_list[1], 0) != predicates[i].relationA && take_relation(&imid_list[1], 0) != predicates[i].relationB &&
-		     take_relation(&imid_list[1], 1) != predicates[i].relationA && take_relation(&imid_list[1], 1) != predicates[i].relationB){
-
-                     imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 1), take_col(&imid_list[1], 1),
-		   	                           predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
-
-		     make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 0), take_relation(&imid_list[1], 1), predicates[i].relationA, predicates[i].relationB);
-
-  	         }else if(take_relation(&imid_list[1], 0) != predicates[i].relationA && take_relation(&imid_list[1], 0) != predicates[i].relationB &&
-		          take_relation(&imid_list[1], 2) != predicates[i].relationA && take_relation(&imid_list[1], 2) != predicates[i].relationB){
-
-	             imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 0), take_col(&imid_list[1], 0), take_relation(&imid_list[1], 2), take_col(&imid_list[1], 2),
-			                           predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
-
-		     make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 0), take_relation(&imid_list[1], 2), predicates[i].relationA, predicates[i].relationB);
-
-	         }else if(take_relation(&imid_list[1], 1) != predicates[i].relationA && take_relation(&imid_list[1], 1) != predicates[i].relationB &&
-		          take_relation(&imid_list[1], 2) != predicates[i].relationA && take_relation(&imid_list[1], 2) != predicates[i].relationB){
-
-	             imid_list[0] = MID_dimiourgia(&imid_list[1], 4, take_relation(&imid_list[1], 1), take_col(&imid_list[1], 1), take_relation(&imid_list[1], 2), take_col(&imid_list[1], 2),
-		          	               predicates[i].relationA, predicates[i].columnA, predicates[i].relationB, predicates[i].columnB);
-
-	 	     make_second_intermid(&join_list, imid_list, 2, take_relation(&imid_list[1], 1), take_relation(&imid_list[1], 2), predicates[i].relationA, predicates[i].relationB);
-	         }
-
-
-                 lista_diagrafi_mid(&imid_list[1]);
+           lista_diagrafi_mid(&imid_list[1]);
 	         imid_list[1] = NULL;
 	         lista_diagrafi(&join_list);
 	         free(Rr1->tuples);     free(Rr2->tuples);
-                 free(Ss1->tuples);     free(Ss2->tuples);
+           free(Ss1->tuples);     free(Ss2->tuples);
 	     }
 	 }
      }
@@ -1063,6 +1107,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
    char *query, query2[100];
    size_t len = 0;
    clock_t time;
+   int x=0;
 
    FILE *f=fopen(query_file,"r");
    if(f==NULL){
@@ -1072,11 +1117,11 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
    while(getline(&query,&len,f)!= -1){
+     x++;
         if(!strcmp(query,"F\n")){
             printf("\nEnd of batch.\n\n");
             continue;
         }
-
 
 
         int *tables = malloc(relation_number * sizeof(int));

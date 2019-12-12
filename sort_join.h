@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "join_list.h"
+#include "mid_list.h"
 
 
 
@@ -18,7 +19,7 @@ void quickSort(relation **Rr, int low, int high);
 void recurseFunc(relation **Rr_1, relation **Rr_2, int start, int end, int bytePos);
 
 
-void Sort_Merge_Join(relation **Rr, relation **Ss, info_deikti *list);
+void Sort_Merge_Join(relation **Rr, relation **Ss, info_deikti *list,main_pointer *imid1,main_pointer *imid2,int first_join,int flag);
 
 
 int partition2(uint64_t *A, int lo, int hi);

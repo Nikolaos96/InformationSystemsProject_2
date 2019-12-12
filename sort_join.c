@@ -1,5 +1,6 @@
 /* sort_join.c */
 #include "sort_join.h"
+//#include "mid_list.h"
 #define HIST_SIZE  256
 #define P_SUM_SIZE 256
 
@@ -209,7 +210,7 @@
  /*
   function for join relation Rr - relation Ss
  */
- void Sort_Merge_Join(relation **Rr, relation **Ss, info_deikti *list){
+ void Sort_Merge_Join(relation **Rr, relation **Ss, info_deikti *list,main_pointer *imid1,main_pointer *imid2,int first_join,int flag){
      int mark = -1;
      int r = 0, s = 0;
 
@@ -223,8 +224,28 @@
 	 if((r > (*Rr)->num_tuples) || (s > (*Ss)->num_tuples)) break;
 
 	 if( (*Rr)->tuples[r].key == (*Ss)->tuples[s].key ){
-             //printf("%lu  -  %lu \n", (*Rr)->tuples[r].payload, (*Ss)->tuples[s].payload);
-	     eisagogi_eggrafis(list, (*Rr)->tuples[r].payload, (*Ss)->tuples[s].payload);
+       if(first_join==1){//1o join,apotelesmata apeu8eias ston endiameso
+         eisagogi_eggrafis_mid(imid1,(*Rr)->tuples[r].payload);
+         eisagogi_eggrafis_mid(imid1,(*Ss)->tuples[s].payload);
+
+       }
+       else if(first_join==0 && flag==1){
+         int cols=take_columns(imid1);
+         for(int k=0;k<cols;k++){
+           eisagogi_eggrafis_mid(imid2,take_rowid(imid1,r*cols+k));
+         }
+         eisagogi_eggrafis_mid(imid2,(*Ss)->tuples[s].payload);
+       }
+       else if(first_join==0 && flag==2){
+         int cols=take_columns(imid1);
+         for(int k=0;k<cols;k++){
+           eisagogi_eggrafis_mid(imid2,take_rowid(imid1,s*cols+k));
+         }
+         eisagogi_eggrafis_mid(imid2,(*Rr)->tuples[r].payload);
+       }
+       else{
+	      eisagogi_eggrafis(list, (*Rr)->tuples[r].payload, (*Ss)->tuples[s].payload);
+       }
 	     s++;
 	 }else{
 	     s = mark;
