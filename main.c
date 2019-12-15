@@ -31,9 +31,6 @@ int main(int argc, char *argv[]){
 
   read_queries(query_file,&array,relation_number);
 
-
-
-
   delete_all_array(&array, relation_number, &directory, &workload_file,&query_file);
   return 0;
 }
