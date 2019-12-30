@@ -3,6 +3,7 @@
 #include "sort_join.h"
 #include "join_list.h"
 #include "mid_list.h"
+#include "HashTable.h"
 #define  BYTEPOS  7
 
 
@@ -553,6 +554,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
      // prepei na elegxoyme oxi tin k alla tin alli an einai idia me mia apo tis 2 stiles tou join
      int l;
      int join,index,val,val2;
+
      if(rel2==-1){
        if(k == 0) l = 1;
        else       l = 0;
@@ -563,6 +565,56 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
            join = 1;	// payload
 
 
+
+
+
+       int size = 10000;
+       deiktis_ht *H_Table = malloc(size * sizeof(deiktis_ht));
+       if(H_Table == NULL) { printf("Error malloc memory H_Table. \n\n"); exit(1); }
+
+       for(int i = 0 ; i < size ; i++){
+            H_Table[i] = HashTable_dimiourgia(&H_Table[i]);
+            dimoiourgeia_arxikwn_bucket(&H_Table[i]);
+        }
+
+       ///////////////////////////////////////////////////////////////////////////
+	// deimiourgia   hash_table
+       index = l;
+       val = k;
+       for(int j = 0 ; j < take_crowd_results_mid(&imid_list[0]) ; j++){
+            uint64_t row_id = take_rowid(&imid_list[0], index);
+            int hash_r = hash(row_id, size);
+            eisagogi_rowId(&H_Table[hash_r], row_id, take_rowid(&imid_list[0], val), 0, 1);
+
+            val += 2;
+            index += 2;
+       }
+
+	//////////////////////////////////////////////////////////////////////////////
+
+
+       for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
+            tuple tt = take_row(join_list, i);
+            uint64_t row_id;
+
+	    if(join == 0) row_id = tt.key;
+	    else	  row_id = tt.payload;
+
+	    int hash_r = hash(row_id, size);
+            rows_node *t = take_list(&H_Table[hash_r], row_id);
+
+            while(t != NULL){
+                eisagogi_eggrafis_mid(&imid_list[1], t->row_id);
+		eisagogi_eggrafis_mid(&imid_list[1], tt.key);
+		eisagogi_eggrafis_mid(&imid_list[1], tt.payload);
+	        t = t->next_row;
+	    }
+       }
+
+       for(int i = 0 ; i < size ; i++) HashTable_diagrafi(&H_Table[i]);
+       free(H_Table);
+
+/*
        for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
          tuple t = take_row(join_list, i);
           index = l;
@@ -587,9 +639,9 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
              }
           }
         }
-   }
+*/
 
-   else{
+   }else{
 
      k1=rel,k2=rel2;
 
@@ -617,6 +669,58 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
 
+
+
+       int size = 10000;
+       deiktis_ht *H_Table = malloc(size * sizeof(deiktis_ht));
+       if(H_Table == NULL) { printf("Error malloc memory H_Table. \n\n"); exit(1); }
+
+       for(int i = 0 ; i < size ; i++){
+            H_Table[i] = HashTable_dimiourgia(&H_Table[i]);
+            dimoiourgeia_arxikwn_bucket(&H_Table[i]);
+        }
+
+       ///////////////////////////////////////////////////////////////////////////
+        // deimiourgia   hash_table
+
+       index = thesi;   // 1
+       val = thesi2;    // 0
+       val2= thesi3;    // 2
+
+       for(int j = 0 ; j < take_crowd_results_mid(&imid_list[1]) ; j++){
+            uint64_t row_id = take_rowid(&imid_list[1], index);
+            int hash_r = hash(row_id, size);
+            eisagogi_rowId(&H_Table[hash_r], row_id, take_rowid(&imid_list[1], val), take_rowid(&imid_list[1], val2), 2);
+
+            val += 3;
+	    val2 += 3;
+            index += 3;
+       }
+        //////////////////////////////////////////////////////////////////////////////
+
+       for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
+            tuple tt = take_row(join_list, i);
+            uint64_t row_id;
+
+            if(join == 0) row_id = tt.key;
+            else          row_id = tt.payload;
+
+            int hash_r = hash(row_id, size);
+            rows_node *t = take_list(&H_Table[hash_r], row_id);
+
+            while(t != NULL){
+                eisagogi_eggrafis_mid(&imid_list[0], t->row_id);
+		eisagogi_eggrafis_mid(&imid_list[0], t->row_id2);
+                eisagogi_eggrafis_mid(&imid_list[0], tt.key);
+                eisagogi_eggrafis_mid(&imid_list[0], tt.payload);
+                t = t->next_row;
+            }
+       }
+
+       for(int i = 0 ; i < size ; i++) HashTable_diagrafi(&H_Table[i]);
+       free(H_Table);
+
+/*
     for(int i = 0 ; i < take_crowd_results(join_list) ; i++){
        tuple t = take_row(join_list, i);
        index = thesi;	// 1
@@ -647,6 +751,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
           }
        }
      }
+*/
   }
      return;
  }
@@ -1026,14 +1131,15 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
        exit(1);
    }
 
-
+   int xx =  0;
    while(getline(&query,&len,f)!= -1){
+        xx++;
 
         if(!strcmp(query,"F\n")){
             printf("\nEnd of batch.\n\n");
             continue;
         }
-
+//        if(xx != 8) continue;
 
         int *tables = malloc(relation_number * sizeof(int));
         if(tables == NULL){
