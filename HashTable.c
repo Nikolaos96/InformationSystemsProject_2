@@ -11,6 +11,7 @@
  */
  typedef struct hash_table{
 	deiktis_b arxi;
+  int unique_ids;
  }hash_table;
 
 
@@ -38,6 +39,7 @@
      deiktis_ht linfo;
      linfo = malloc(sizeof(hash_table));
      linfo->arxi = NULL;
+     linfo->unique_ids=0;
 
 //	printf("Hash Table ook \n");
      return linfo;
@@ -100,7 +102,7 @@
   //      printf("Egine eisagwgi rowId se idi yparxon rowId \n");
 
      }else{ // den vrethike, prepei na to valoume sto hash table an exei xwro
-
+   (*linfo)->unique_ids++;
 	 bucket = (*linfo)->arxi;
 	 while(bucket->epomenos != NULL) bucket = bucket->epomenos;
 
@@ -146,24 +148,18 @@
 
  }
 
- void emfanisi_ht(deiktis_ht* linfo){
+ uint64_t emfanisi_ht(deiktis_ht* linfo,int j){
      deiktis_b bucket = (*linfo)->arxi;
 
-     while(bucket != NULL){
+     while(1){//bucket != NULL
 
-         for(int i =0 ; i < bucket->adeia_thesi ; i++){
-             printf("%lu :   ", bucket->Dedomena[i].rowId);
-	     rows_node *t = bucket->Dedomena[i].row;
+           if(j<SIZE_BUCKET)
+	          return bucket->Dedomena[j].rowId;
+           else{
+            j=j-SIZE_BUCKET;
+            bucket = bucket->epomenos;
+           }
 
-//	     while(t != NULL){
-//		 printf("%lu    ", t->row_id);
-//		 t = t->next_row;
-//	     }
-//	     printf("\n");
-         }
-
-	 printf("\n\n");
-         bucket = bucket->epomenos;
      }
 
  }
@@ -205,7 +201,9 @@
          bucket = bucket->epomenos;
      }
  }
-
+int take_unique_ids(deiktis_ht* linfo){
+  return (*linfo)->unique_ids;
+}
 
  uint64_t hash(uint64_t x, int p) {
 //    x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);

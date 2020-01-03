@@ -5,6 +5,7 @@
 #include "mid_list.h"
 #include "HashTable.h"
 #define  BYTEPOS  7
+#define HASH_TABLE_SIZE 10000
 
 
  /*
@@ -486,17 +487,31 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
      // prepei na vrw posa diaforetika roid yparxoun ston endiameso
-     uint64_t *aa = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));
+    /* uint64_t *aa = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));
      uint64_t *bb = malloc(take_crowd_results_mid(mid_result) * sizeof(uint64_t));
 
      if(aa == NULL){
 	 printf("Error malloc a \n");
 	 exit(1);
-     }
+ }*/
+     deiktis_ht *H_Table = malloc(HASH_TABLE_SIZE * sizeof(deiktis_ht));
+     if(H_Table == NULL) { printf("Error malloc memory H_Table. \n\n"); exit(1); }
+
+     for(int i = 0 ; i < HASH_TABLE_SIZE ; i++){
+          H_Table[i] = HashTable_dimiourgia(&H_Table[i]);
+          dimoiourgeia_arxikwn_bucket(&H_Table[i]);
+      }
+      for(int j = 0 ; j < take_crowd_results_mid(mid_result) ; j++){
+           uint64_t row_id = take_rowid(mid_result, k);
+           int hash_r = hash(row_id, HASH_TABLE_SIZE);
+           eisagogi_rowId(&H_Table[hash_r], row_id, 0, 0, 1);
+           k += rep;
+      }
+
      ////////////////////////////////////////////////////////////
      // neos tropos gia na min pairnoume ta diplotipa
 
-     for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
+    /* for(int i = 0 ; i < take_crowd_results_mid(mid_result) ; i++){
          bb[i] = take_rowid(mid_result, k);
          k += rep;
      }
@@ -513,16 +528,20 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	        j++;
 	     }
 	 }
-     }
+ }*/
 
      ///////////////////////////////////////////////////////////
-     (*Rr1)->num_tuples = j;
+     uint64_t ids_counter=0;
+     for(int i=0;i<HASH_TABLE_SIZE;i++){
+       ids_counter+=take_unique_ids(&H_Table[i]);
+     }
+     (*Rr1)->num_tuples = ids_counter;
      (*Rr1)->tuples = malloc((*Rr1)->num_tuples * sizeof(tuple));
      if((*Rr1)->tuples == NULL){
 	 printf("Error malloc (*Rr1)->tuples \n");
 	 exit(1);
      }
-     (*Rr2)->num_tuples = j;
+     (*Rr2)->num_tuples = ids_counter;
      (*Rr2)->tuples = malloc((*Rr2)->num_tuples * sizeof(tuple));
      if((*Rr2)->tuples == NULL){
          printf("Error malloc (*Rr2)->tuples \n");
@@ -530,17 +549,22 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
      }
      ////////////////////////////////////////////////////////////
 
-
-     for(int i = 0 ; i < j ; i++){
-	 (*Rr1)->tuples[i].payload = aa[i];
+     k=0;
+     for(int i = 0 ; i < HASH_TABLE_SIZE ; i++){
+       for(int j=0;j<take_unique_ids(&H_Table[i]);j++){
+	      (*Rr1)->tuples[k].payload = emfanisi_ht(&H_Table[i],j);
+        k++;
+      }
      }
      // gia kathe roid prepei na paw ston katalilo pinaka kai stili kai na parw to key
      for(int i = 0 ; i < (*Rr1)->num_tuples ; i++){
 	 uint64_t rowid = (*Rr1)->tuples[i].payload;
 	 (*Rr1)->tuples[i].key = (*array)[tables[r]].relation_array[(*array)[tables[r]].index[c] + rowid - 1];	//////////////// sos thelei -1
      }
-     free(aa);
-     free(bb);
+     for(int i = 0 ; i < HASH_TABLE_SIZE ; i++) HashTable_diagrafi(&H_Table[i]);
+     free(H_Table);
+    // free(aa);
+    // free(bb);
 
      return;
  }
@@ -568,11 +592,10 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
 
-       int size = 10000;
-       deiktis_ht *H_Table = malloc(size * sizeof(deiktis_ht));
+       deiktis_ht *H_Table = malloc(HASH_TABLE_SIZE * sizeof(deiktis_ht));
        if(H_Table == NULL) { printf("Error malloc memory H_Table. \n\n"); exit(1); }
 
-       for(int i = 0 ; i < size ; i++){
+       for(int i = 0 ; i < HASH_TABLE_SIZE ; i++){
             H_Table[i] = HashTable_dimiourgia(&H_Table[i]);
             dimoiourgeia_arxikwn_bucket(&H_Table[i]);
         }
@@ -583,7 +606,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
        val = k;
        for(int j = 0 ; j < take_crowd_results_mid(&imid_list[0]) ; j++){
             uint64_t row_id = take_rowid(&imid_list[0], index);
-            int hash_r = hash(row_id, size);
+            int hash_r = hash(row_id, HASH_TABLE_SIZE);
             eisagogi_rowId(&H_Table[hash_r], row_id, take_rowid(&imid_list[0], val), 0, 1);
 
             val += 2;
@@ -600,7 +623,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	    if(join == 0) row_id = tt.key;
 	    else	  row_id = tt.payload;
 
-	    int hash_r = hash(row_id, size);
+	    int hash_r = hash(row_id, HASH_TABLE_SIZE);
             rows_node *t = take_list(&H_Table[hash_r], row_id);
 
             while(t != NULL){
@@ -611,7 +634,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 	    }
        }
 
-       for(int i = 0 ; i < size ; i++) HashTable_diagrafi(&H_Table[i]);
+       for(int i = 0 ; i < HASH_TABLE_SIZE ; i++) HashTable_diagrafi(&H_Table[i]);
        free(H_Table);
 
 /*
@@ -671,11 +694,10 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
 
 
-       int size = 10000;
-       deiktis_ht *H_Table = malloc(size * sizeof(deiktis_ht));
+       deiktis_ht *H_Table = malloc(HASH_TABLE_SIZE * sizeof(deiktis_ht));
        if(H_Table == NULL) { printf("Error malloc memory H_Table. \n\n"); exit(1); }
 
-       for(int i = 0 ; i < size ; i++){
+       for(int i = 0 ; i < HASH_TABLE_SIZE ; i++){
             H_Table[i] = HashTable_dimiourgia(&H_Table[i]);
             dimoiourgeia_arxikwn_bucket(&H_Table[i]);
         }
@@ -689,7 +711,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
 
        for(int j = 0 ; j < take_crowd_results_mid(&imid_list[1]) ; j++){
             uint64_t row_id = take_rowid(&imid_list[1], index);
-            int hash_r = hash(row_id, size);
+            int hash_r = hash(row_id, HASH_TABLE_SIZE);
             eisagogi_rowId(&H_Table[hash_r], row_id, take_rowid(&imid_list[1], val), take_rowid(&imid_list[1], val2), 2);
 
             val += 3;
@@ -705,7 +727,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
             if(join == 0) row_id = tt.key;
             else          row_id = tt.payload;
 
-            int hash_r = hash(row_id, size);
+            int hash_r = hash(row_id, HASH_TABLE_SIZE);
             rows_node *t = take_list(&H_Table[hash_r], row_id);
 
             while(t != NULL){
@@ -717,7 +739,7 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
             }
        }
 
-       for(int i = 0 ; i < size ; i++) HashTable_diagrafi(&H_Table[i]);
+       for(int i = 0 ; i < HASH_TABLE_SIZE ; i++) HashTable_diagrafi(&H_Table[i]);
        free(H_Table);
 
 /*
@@ -1139,7 +1161,8 @@ void take_checksums(checksum_struct *checksums,int number_of_checksums,char* que
             printf("\nEnd of batch.\n\n");
             continue;
         }
-//        if(xx != 8) continue;
+        if(xx < 30 && xx==33) continue;
+
 
         int *tables = malloc(relation_number * sizeof(int));
         if(tables == NULL){

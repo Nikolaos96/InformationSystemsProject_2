@@ -6,7 +6,6 @@
 #include <stdint.h>
 
 
-
 typedef struct hash_table    * deiktis_ht;
 typedef struct bucket * deiktis_b;
 typedef struct rows_list  rows_node;
@@ -37,9 +36,10 @@ void dimoiourgeia_arxikwn_bucket(deiktis_ht* linfo);
 void eisagogi_rowId(deiktis_ht* linfo, uint64_t rowId, uint64_t rowId2, uint64_t rowId3, int periptosi);
 
 
- void emfanisi_ht(deiktis_ht* linfo);
+ uint64_t emfanisi_ht(deiktis_ht* linfo,int j);
  void HashTable_diagrafi(deiktis_ht* linfo);
  rows_node * take_list(deiktis_ht* linfo, uint64_t rowid);
+ int take_unique_ids(deiktis_ht* linfo);
 
 
  uint64_t hash(uint64_t x, int p);
