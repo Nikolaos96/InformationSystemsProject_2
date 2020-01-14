@@ -21,15 +21,20 @@ int main(int argc, char *argv[]){
   do{
       if( !rep ){
 	  printf("Give me str. \n");
-	  scanf("%s", done);
+	  if( scanf("%s", done) ){};
       }else{
 	  printf("False.Give again the str. \n");
-	  scanf("%s", done);
+	  if( scanf("%s", done) ){};
       }
       rep++;
   }while(strcmp(DONE, done));
 
+  clock_t time;
+  time = clock();
   read_queries(query_file,&array,relation_number);
+  time = clock() - time;
+
+  printf("total time  %lf  sec. \n", ((double)time) / CLOCKS_PER_SEC );
 
   delete_all_array(&array, relation_number, &directory, &workload_file,&query_file);
   return 0;

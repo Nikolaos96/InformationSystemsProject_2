@@ -82,7 +82,7 @@
 
    FILE *f=fopen(init_file,"r");
    for(int i=0 ; i < relation_number ; i++){
-       fscanf(f,"%s[^\n]",r);
+       if( fscanf(f,"%s[^\n]",r) ){};
 
        char file[150];
        strcpy(file,directory);
@@ -96,8 +96,8 @@
        }
 
        uint64_t tuples, columns, x;
-       fread(&tuples, sizeof(tuples), 1, fp);
-       fread(&columns, sizeof(columns), 1, fp);
+       if( fread(&tuples, sizeof(tuples), 1, fp) ){};
+       if( fread(&columns, sizeof(columns), 1, fp) ){};
 
 
        /////////////////////////////////////////////////
@@ -120,7 +120,7 @@
 
 
        for(int j = 0 ; j < ((*array)[i].num_tuples * (*array)[i].num_columns) ; j++){
-	        fread(&x, sizeof(x), 1, fp);
+	        if( fread(&x, sizeof(x), 1, fp) ){};
 	        (*array)[i].relation_array[j] = x;
        }
 
